@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Every product signal in your inbox, one decision away: FounderLoop for founders, built on Switch</title>
+<meta name="description" content="FounderLoop is a personal productivity agent for founders and leaders. It listens to the chat apps where your users talk, keeps their exact words, and asks you to decide. Built on Switch.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* =========================== TOKENS =========================== */
+:root{
+  --paper:#F5F3EE; --paper-2:#ECE8DF; --card:#FFFFFF;
+  --ink:#16181D; --ink-2:#4B4F58; --ink-3:#767A84; --line:#D8D3C8;
+  --navy:#0D1330; --navy-2:#18204A; --navy-3:#2A3470; --on-navy:#ECEBFF; --on-navy-2:#A9A8D6;
+  --violet:#7B5CFF; --violet-2:#A893FF;
+  --teal:#0C8573; --amber:#A86A00; --amber-fill:#F2B33D; --coral:#D2472F;
+  --ok:#1F7A4C; --bad:#B3361E;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Instrument Sans","Helvetica Neue","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --top:52px;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#111319; --paper-2:#191C25; --card:#1E222D; --ink:#ECEAE4; --ink-2:#B4B6BE; --ink-3:#8C8F99; --line:#2E3240;
+  --teal:#34C3AE; --amber:#F2B33D; --coral:#FF7A62; --ok:#4CC38A; --bad:#FF7A62; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --paper:#111319; --paper-2:#191C25; --card:#1E222D; --ink:#ECEAE4; --ink-2:#B4B6BE; --ink-3:#8C8F99; --line:#2E3240;
+  --teal:#34C3AE; --amber:#F2B33D; --coral:#FF7A62; --ok:#4CC38A; --bad:#FF7A62; color-scheme:dark; }
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(var(--top) + env(safe-area-inset-top,0px) + 16px)}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
+body{margin:0; background:var(--paper); color:var(--ink); font:18.5px/1.7 var(--body); -webkit-font-smoothing:antialiased}
+body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:60; background:var(--paper)}
+a{color:inherit; text-underline-offset:3px; text-decoration-thickness:1px}
+:focus-visible{outline:3px solid var(--violet); outline-offset:3px; border-radius:6px}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+code{font-family:var(--mono); font-size:.84em; background:color-mix(in srgb,var(--violet) 11%,transparent); padding:1px 5px; border-radius:4px}
+
+/* =========================== TOP BAR =========================== */
+.top{position:sticky; top:env(safe-area-inset-top,0px); z-index:50; height:var(--top); background:color-mix(in srgb,var(--paper) 90%,transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px; margin:0 auto; padding:0 24px; height:100%; display:flex; align-items:center; justify-content:space-between; gap:16px}
+.brand{font-family:var(--display); font-weight:800; font-size:18px; text-decoration:none}
+.brand small{font-family:var(--body); font-weight:500; color:var(--ink-3); font-size:14px; margin-left:8px}
+.top .cta{font:600 14px var(--body); text-decoration:none; padding:7px 12px; border-radius:8px; background:var(--ink); color:var(--paper)}
+.progress{position:absolute; left:0; bottom:-1px; height:2px; background:var(--violet); width:0}
+
+/* =========================== ARTICLE =========================== */
+/* sidebar navigation */
+.toc{position:fixed; left:0; top:calc(var(--top) + env(safe-area-inset-top,0px)); bottom:0; width:240px; z-index:46; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; -ms-overflow-style:none; background:transparent; border-right:0; padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px)) 20px; font-size:14px; line-height:1.4}
+.toc::-webkit-scrollbar{display:none; width:0; height:0}
+.toc b{display:block; font-weight:600; color:var(--ink-3); margin-bottom:10px}
+.toc ul{list-style:none; margin:0; padding:0}
+.toc a, .toc .tstory{display:block; width:100%; text-align:left; text-decoration:none; color:var(--ink-3); padding:6px 0 6px 12px; border:0; border-left:2px solid var(--line); background:none; font:inherit; cursor:pointer}
+.toc a:hover, .toc .tstory:hover{color:var(--ink)}
+.toc a[aria-current="true"]{color:var(--ink); border-left-color:var(--violet); font-weight:600}
+.toc .tstories{margin:0 0 4px}
+.toc .tstory{padding:4px 0 4px 26px; font-size:13px; display:flex; gap:7px; align-items:baseline}
+.toc .tstory[aria-current="true"]{color:var(--ink); font-weight:600; border-left-color:var(--violet-2)}
+.toc .ttop{margin-top:14px; border-left-color:transparent}
+.toc-btn{display:none; font:600 14px var(--body); align-items:center; gap:7px; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--ink); cursor:pointer; flex:none}
+.toc-btn svg{width:16px; height:16px}
+.toc-bd{position:fixed; inset:calc(var(--top) + env(safe-area-inset-top,0px)) 0 0 0; z-index:45; background:rgba(13,19,48,.45); opacity:0; visibility:hidden; transition:opacity .25s, visibility .25s}
+@media (min-width:1100px){
+  main, footer{margin-left:240px}
+}
+@media (max-width:1099.98px){
+  .toc-btn{display:inline-flex}
+  .toc{background:var(--paper); border-right:1px solid var(--line); width:min(300px, 86vw); transform:translateX(-100%); visibility:hidden; transition:transform .28s cubic-bezier(.4,0,.2,1), visibility .28s; box-shadow:20px 0 40px -30px rgba(13,19,48,.6)}
+  body.toc-open .toc{transform:none; visibility:visible; transition:transform .28s cubic-bezier(.4,0,.2,1), visibility 0s}
+  body.toc-open .toc-bd{opacity:1; visibility:visible}
+  .top-left{display:flex; align-items:center; gap:12px; min-width:0}
+}
+@media (max-width:480px){
+  .top-in{padding:0 14px; gap:10px}
+  .brand small{display:none}
+  .brand{font-size:16px}
+  .toc-btn{padding:6px 8px; gap:6px}
+  .top .cta{padding:7px 10px; font-size:13px}
+}
+.brand, .top .cta{white-space:nowrap}
+.prose{max-width:690px; margin:0 auto; padding:0 24px}
+.prose p{margin:0 0 1.15em}
+.prose h2{font-family:var(--display); font-weight:800; font-size:clamp(32px,4.2vw,46px); line-height:1.05; letter-spacing:-.025em; margin:2.4em 0 .55em}
+.prose h3{font-family:var(--display); font-weight:600; font-size:24px; letter-spacing:-.01em; line-height:1.2; margin:1.8em 0 .5em}
+.lead{font-size:22px; line-height:1.55}
+.pull{font-family:var(--display); font-weight:600; font-size:clamp(24px,3vw,32px); line-height:1.2; letter-spacing:-.015em; border-left:4px solid var(--violet); padding:2px 0 2px 22px; margin:1.6em 0}
+.wide{max-width:1120px; margin:44px auto; padding:0 24px}
+figure{margin:0}
+figcaption{font-size:14.5px; color:var(--ink-3); margin-top:12px; line-height:1.5; max-width:690px}
+.wide figcaption{margin-left:auto; margin-right:auto; text-align:center}
+
+/* header */
+.post-head{max-width:900px; margin:0 auto; padding:72px 24px 24px}
+.post-tag{font-weight:600; font-size:15px; color:var(--violet)}
+.post-head h1{font-family:var(--display); font-weight:800; font-size:clamp(44px,7.2vw,88px); line-height:.95; letter-spacing:-.04em; margin:14px 0 22px}
+.dek{font-size:clamp(19px,2.2vw,24px); color:var(--ink-2); max-width:36ch; line-height:1.45; margin:0}
+.byline{display:flex; align-items:center; gap:12px; margin-top:28px; font-size:15px; color:var(--ink-2)}
+.byline .av{width:42px; height:42px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-family:var(--display); font-weight:800}
+.byline b{color:var(--ink); display:block; font-weight:600}
+
+/* hero loop figure */
+.hero-fig{background:var(--paper-2); border-radius:22px; padding:28px; display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:center}
+.hero-fig svg text{font-family:var(--body); font-size:15px; fill:var(--ink)}
+.hero-fig .say{font-family:var(--display); font-size:clamp(24px,3vw,34px); font-weight:600; line-height:1.15; letter-spacing:-.015em; padding:0 12px}
+.hero-fig .say span{display:block; color:var(--ink-3); font-size:.62em; font-family:var(--body); font-weight:500; letter-spacing:0; margin-top:14px; line-height:1.5}
+@media (max-width:820px){ .hero-fig{grid-template-columns:1fr} }
+
+/* navy switch block */
+.switch-band{background:var(--navy); color:var(--on-navy); padding:64px 0 56px; margin:56px 0; overflow:hidden}
+.switch-band .giant{font-family:var(--display); font-weight:800; font-size:clamp(90px,20vw,300px); line-height:.8; letter-spacing:-.06em; color:var(--violet); margin:0 0 26px; white-space:nowrap; padding:0 24px; max-width:1120px; margin-left:auto; margin-right:auto}
+.switch-band .inner{max-width:1120px; margin:0 auto; padding:0 24px}
+.switch-band p.l{font-size:21px; max-width:46ch; color:var(--on-navy)}
+.facts{display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-top:34px}
+.fact svg{width:56px; height:56px; display:block; margin-bottom:12px}
+.fact h3{font-family:var(--display); font-weight:600; font-size:21px; margin:0 0 6px; color:#fff; line-height:1.2}
+.fact p{font-size:16px; color:var(--on-navy-2); margin:0; line-height:1.55}
+.switch-band .not{margin-top:30px; font-size:15.5px; color:var(--on-navy-2)}
+.switch-band .not b{color:#fff}
+.switch-band a{color:var(--violet-2)}
+@media (max-width:800px){ .facts{grid-template-columns:1fr} }
+
+/* week grid */
+.week{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:22px}
+.seg{display:inline-flex; background:var(--paper-2); border-radius:12px; padding:4px; gap:4px; flex-wrap:wrap}
+.seg button{font:600 14.5px var(--body); border:0; background:transparent; color:var(--ink-2); padding:8px 14px; border-radius:9px; cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+.week-grid{display:grid; grid-template-columns:118px repeat(5,1fr); gap:6px; margin-top:18px; font-size:13px}
+.week-grid .dh{font-weight:600; color:var(--ink-3); text-align:center; font-size:12.5px}
+.week-grid .ah{font-weight:600; font-size:13px; display:flex; align-items:center; gap:8px; line-height:1.2}
+.week-grid .ah i{width:12px; height:12px; border-radius:4px; flex:none}
+.cell{min-height:64px; background:var(--paper); border-radius:10px; padding:5px; display:flex; flex-direction:column; gap:4px}
+.bub{background:var(--card); border:1px solid var(--line); border-radius:9px; padding:5px 7px; line-height:1.3; transition:all .35s; position:relative}
+.bub .k{font-weight:700; margin-right:4px}
+.bub.sig[data-r="product"] .k{color:var(--teal)}
+.bub.sig[data-r="revenue"] .k{color:var(--amber)}
+.bub.sig[data-r="commitment"] .k{color:var(--coral)}
+.mode-lost .bub{opacity:.28; filter:grayscale(1)}
+.mode-lost .bub.para{opacity:1; filter:none; border-style:dashed}
+.mode-lost .bub.para::after{content:"reached you as: “" attr(data-para) "”"; display:block; font-style:italic; color:var(--ink-3); margin-top:3px}
+.mode-loop .bub:not(.sig){opacity:.3}
+.mode-loop .bub.sig{box-shadow:0 0 0 2px var(--rc, var(--violet))}
+.mode-loop .bub.sig.later{box-shadow:0 0 0 2px var(--rc); border-style:dashed}
+.bub[data-r="product"]{--rc:var(--teal)} .bub[data-r="revenue"]{--rc:var(--amber-fill)} .bub[data-r="commitment"]{--rc:var(--coral)}
+.week-out{margin-top:16px; border-top:1px solid var(--line); padding-top:14px; font-size:15px; min-height:60px}
+.week-out .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; margin-top:8px}
+.week-out .wc{font-size:13px; border-left:4px solid var(--rc); background:var(--paper); padding:6px 9px; border-radius:6px; line-height:1.35}
+.week-out .wc.later{opacity:.75}
+@media (max-width:760px){ .week-grid{grid-template-columns:repeat(5,minmax(110px,1fr)); overflow-x:auto} .week-grid .ah,.week-grid .corner{display:none} .week-scroll{overflow-x:auto} }
+
+/* pains */
+.pains{display:grid; grid-template-columns:repeat(4,1fr); gap:18px}
+.pain{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px}
+.pain svg{width:100%; height:86px; display:block; margin-bottom:12px}
+.pain h3{font-family:var(--display); font-weight:600; font-size:19px; margin:0 0 6px; line-height:1.2}
+.pain p{font-size:15px; color:var(--ink-2); margin:0; line-height:1.5}
+@media (max-width:900px){ .pains{grid-template-columns:1fr 1fr} }
+@media (max-width:520px){ .pains{grid-template-columns:1fr} }
+
+/* tag-a-bot compare */
+.vs{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+.vs-col h3{font-family:var(--display); font-size:22px; margin:0 0 10px; display:flex; gap:10px; align-items:center}
+.vs-col h3 .chipx{font:600 12.5px var(--body); padding:3px 9px; border-radius:999px; border:1px solid currentColor}
+.mock-dc{background:#313338; color:#DBDEE1; border-radius:14px; overflow:hidden; font-size:14px}
+.mock-dc .h{background:#2B2D31; padding:9px 14px; font-weight:600; color:#F2F3F5}
+.mock-dc .b{padding:12px 14px; display:flex; flex-direction:column; gap:10px; min-height:250px}
+.dm{display:grid; grid-template-columns:30px 1fr; gap:9px; line-height:1.4}
+.dm .av{width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-weight:700; color:#fff; font-size:13px}
+.dm b{font-weight:600; color:#fff}
+.dm .bot{font-size:10px; font-weight:700; background:#5865F2; color:#fff; padding:0 4px; border-radius:3px; margin-left:4px}
+.dm .t{color:#949BA4; font-size:11.5px; margin-left:6px; font-weight:400}
+.dm .mention{background:rgba(88,101,242,.3); color:#C9CDFB; padding:0 2px; border-radius:3px}
+.note-in{font-size:12.5px; color:#949BA4; font-style:italic; padding-left:39px}
+.note-in.bad{color:#FF9E8C}
+.note-in.good{color:#8FE3B8}
+.mini-slack{margin-top:10px; background:#fff; color:#1D1C1D; border-radius:12px; border:1px solid var(--line); overflow:hidden; font-size:13px}
+.mini-slack .h{background:#3F0E40; color:#fff; padding:7px 12px; font-weight:600}
+.mini-slack .b{padding:10px 12px; border-left:4px solid #0C8573; margin:10px; line-height:1.4}
+.vs-table{width:100%; border-collapse:collapse; font-size:15.5px; margin-top:28px}
+.vs-table th,.vs-table td{text-align:left; padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.45}
+.vs-table th{font-size:13.5px; color:var(--ink-3); font-weight:600}
+.vs-table td:first-child{font-weight:600; width:22%}
+.vs-table td:nth-child(2){color:var(--ink-2)}
+@media (max-width:800px){ .vs{grid-template-columns:1fr} }
+
+/* architecture diagram */
+.architecture{background:var(--navy); color:var(--on-navy); border-radius:22px; padding:clamp(16px,3vw,28px)}
+.architecture ol{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:26px; list-style:none; padding:0; margin:0}
+.architecture li{position:relative; min-width:0; padding:14px; border:1px solid var(--navy-3); border-radius:14px; background:var(--navy-2)}
+.architecture li.switch{border-color:var(--violet-2)}
+.architecture li.agent{background:#ECEAE4; color:#16181D; border-color:#ECEAE4}
+.architecture li:not(:last-child)::after{content:""; position:absolute; top:50%; left:calc(100% + 8px); width:9px; height:9px; border:solid var(--violet-2); border-width:2px 2px 0 0; transform:translateY(-50%) rotate(45deg)}
+.architecture strong{display:block; margin:0 0 4px; font:700 17px/1.2 var(--display)}
+.architecture span{display:block; color:var(--on-navy-2); font-size:14px; line-height:1.4}
+.architecture .agent span{color:#4B4F58}
+@media (max-width:900px){
+  .architecture ol{grid-template-columns:1fr; gap:20px}
+  .architecture li:not(:last-child)::after{top:calc(100% + 5px); left:50%; transform:translateX(-50%) rotate(135deg)}
+}
+
+/* toolkit tiles */
+.tiles{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+.tile{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:0; overflow:hidden}
+.tile summary{list-style:none; cursor:pointer; padding:16px; display:block}
+.tile summary::-webkit-details-marker{display:none}
+.tile svg{width:46px; height:46px; display:block; margin-bottom:10px}
+.tile h3{font-family:var(--display); font-weight:600; font-size:18px; margin:0 0 4px; line-height:1.2}
+.tile .w{font-size:14px; color:var(--ink-2); line-height:1.45; margin:0}
+.tile .use{display:inline-block; font-size:12px; font-weight:600; margin-top:10px; padding:2px 8px; border-radius:999px; border:1px solid currentColor}
+.tile .use.y{color:var(--teal)} .tile .use.n{color:var(--ink-3)}
+.tile .more{padding:0 16px 16px; font-size:14px; line-height:1.5; border-top:1px dashed var(--line); padding-top:12px}
+.tile .more a{color:var(--violet); font-weight:600}
+.tile[open]{box-shadow:0 0 0 2px var(--violet)}
+@media (max-width:980px){ .tiles{grid-template-columns:repeat(2,1fr)} }
+
+/* flip */
+.flip{background:var(--navy); color:var(--on-navy); border-radius:22px; padding:28px}
+.big-toggle{display:inline-flex; align-items:center; gap:16px; cursor:pointer; border:0; background:none; color:inherit; font:inherit; padding:0}
+.big-toggle .track{width:92px; height:50px; border-radius:999px; background:var(--violet); position:relative; transition:background .3s}
+.big-toggle .knob{position:absolute; top:5px; left:47px; width:40px; height:40px; border-radius:50%; background:#fff; transition:left .3s}
+.big-toggle[aria-pressed="false"] .track{background:#4A2530}
+.big-toggle[aria-pressed="false"] .knob{left:5px}
+.big-toggle .lbl{font-family:var(--display); font-size:26px; font-weight:800}
+.flip-grid{display:grid; grid-template-columns:1.3fr .7fr; gap:28px; margin-top:20px; align-items:start}
+.mesh{background:var(--navy-2); border-radius:14px; padding:12px}
+.mesh svg{display:block; width:100%; height:auto}
+.mesh text{font-family:var(--body); font-size:13px; fill:var(--on-navy)}
+.mesh .hubtxt{font-family:var(--display); font-weight:800; font-size:20px; fill:#fff}
+.sliders{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:10px; font-size:13.5px; color:var(--on-navy-2); line-height:1.4}
+.sliders input{width:100%; accent-color:var(--violet)}
+.count{font-family:var(--display); font-weight:800; font-size:clamp(56px,7vw,88px); line-height:.9; color:#fff; letter-spacing:-.04em}
+.count.bad{color:#FF8F7A}
+.count-lbl{color:var(--on-navy-2); font-size:14.5px; margin-bottom:18px; line-height:1.45}
+.flip h3{font-family:var(--display); color:#fff; font-size:19px; margin:0 0 8px}
+.build-list{list-style:none; margin:0; padding:0; font-size:14.5px; line-height:1.4}
+.build-list li{padding:6px 0; border-bottom:1px solid var(--navy-3); display:grid; grid-template-columns:18px 1fr; gap:8px}
+.build-list .x{color:var(--violet-2); font-weight:800}
+.flip.off .build-list .x{color:#FF8F7A}
+@media (max-width:860px){ .flip-grid{grid-template-columns:1fr} }
+
+/* =========================== STORY CARD =========================== */
+.story-scroll{position:relative; margin:40px 0 0}
+.story-sticky{position:sticky; top:calc(var(--top) + env(safe-area-inset-top,0px) + 10px); max-width:1180px; margin:0 auto; padding:0 16px}
+.scard{background:var(--card); border:1px solid var(--line); border-radius:22px; box-shadow:0 30px 60px -40px rgba(20,20,60,.45); overflow:hidden}
+.sbar{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); flex-wrap:wrap}
+.stabs{display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; max-width:100%}
+.stabs::-webkit-scrollbar{display:none}
+.stab{font:600 13.5px var(--body); white-space:nowrap; padding:6px 11px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink-2); cursor:pointer; display:inline-flex; gap:6px; align-items:center}
+.stab[aria-current="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.stools{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.mini-tog{display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:600; cursor:pointer; user-select:none; color:var(--ink-2)}
+.mini-tog input{appearance:none; width:30px; height:18px; border-radius:999px; background:var(--line); position:relative; margin:0; cursor:pointer; transition:background .2s}
+.mini-tog input::after{content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:#fff; transition:transform .2s}
+.mini-tog input:checked{background:var(--violet)}
+.mini-tog input:checked::after{transform:translateX(12px)}
+.sbtn{font:600 13.5px var(--body); border:1px solid var(--line); background:var(--card); color:var(--ink); padding:6px 12px; border-radius:8px; cursor:pointer}
+.sbtn.pri{background:var(--violet); color:#fff; border-color:var(--violet)}
+.sbtn:disabled{opacity:.4; cursor:not-allowed}
+
+.stage-wrap{background:var(--paper-2); display:flex; justify-content:center}
+.stage{position:relative; width:100%; flex:none; container-type:inline-size; container-name:stage; overflow:hidden}
+.sim{position:absolute; left:10px; top:10px; z-index:30; font:600 11.5px var(--body); color:var(--ink-3); border:1px dashed var(--ink-3); border-radius:999px; padding:2px 8px; background:color-mix(in srgb,var(--paper-2) 85%,transparent)}
+.wires{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1}
+.wires path{fill:none; stroke:var(--line); stroke-width:2.5; vector-effect:non-scaling-stroke; stroke-dasharray:6 6; transition:stroke .4s}
+.wires path.on{stroke:var(--violet); stroke-dasharray:none}
+.wires path.on.flow{stroke-dasharray:8 7; animation:flow 1s linear infinite}
+@keyframes flow{ to{ stroke-dashoffset:-30 } }
+.wires path.broken{stroke:#E36A55; stroke-dasharray:3 9}
+
+.actor{position:absolute; left:var(--x); top:var(--y); transform:translate(-50%,-50%) scale(var(--s,1)); opacity:0; pointer-events:none; transition:left .75s cubic-bezier(.6,0,.2,1), top .75s cubic-bezier(.6,0,.2,1), opacity .45s, transform .75s cubic-bezier(.6,0,.2,1); z-index:3}
+.actor.show{opacity:1; pointer-events:auto}
+.actor.dim{opacity:.35}
+
+/* founder */
+.a-founder{width:10.5cqw; z-index:6}
+.a-founder svg{display:block; width:100%}
+.ftag{text-align:center; font-weight:700; font-size:max(10px,1.2cqw); margin-top:2px}
+.bubble{position:absolute; background:var(--ink); color:var(--paper); font-weight:500; font-size:max(11px,1.35cqw); line-height:1.3; padding:.7cqw 1cqw; border-radius:1cqw; width:max-content; max-width:19cqw; transition:opacity .3s}
+.bubble:empty{display:none}
+.a-founder .bubble{right:100%; top:6%; margin-right:.6cqw; border-bottom-right-radius:.2cqw}
+.a-founder.center .bubble{right:auto; left:50%; top:auto; bottom:102%; transform:translateX(-50%); margin:0; border-bottom-right-radius:1cqw; max-width:24cqw; text-align:center}
+.a-robot .bubble{left:88%; bottom:100%; max-width:14cqw; border-bottom-left-radius:.2cqw; background:var(--card); color:var(--ink); border:1px solid var(--line); box-shadow:0 6px 18px -10px rgba(0,0,0,.4)}
+
+/* chat window */
+.a-chat{width:33cqw; border-radius:1.2cqw; overflow:hidden; font-size:max(10.5px,1.3cqw); line-height:1.4; box-shadow:0 20px 40px -26px rgba(0,0,0,.6)}
+.a-chat .h{padding:.7cqw 1cqw; font-weight:700; display:flex; justify-content:space-between; gap:6px}
+.a-chat .h span{opacity:.7; font-weight:500}
+.a-chat .b{padding:1cqw}
+.a-chat .m{display:grid; grid-template-columns:3cqw 1fr; gap:.8cqw; border-radius:.6cqw; padding:.3cqw; transition:background .4s}
+.a-chat .av{width:3cqw; height:3cqw; border-radius:50%; display:grid; place-items:center; font-weight:700; color:#fff; font-size:max(10px,1.1cqw)}
+.a-chat .nm{font-weight:700}
+.a-chat .tm{opacity:.6; font-weight:400; margin-left:.4cqw; font-size:.9em}
+.a-chat .note{margin-top:.6cqw; font-size:.9em; opacity:.75; font-style:italic}
+.a-chat .note:empty{display:none}
+.a-chat.dc{background:#313338; color:#DBDEE1} .a-chat.dc .h{background:#2B2D31; color:#fff}
+.a-chat.sk{background:#fff; color:#1D1C1D; border:1px solid #ddd} .a-chat.sk .h{background:#3F0E40; color:#fff}
+.a-chat.hl .m{background:rgba(123,92,255,.22)}
+.a-chat .lens{display:none}
+.a-chat textarea{width:100%; margin-top:.8cqw; resize:none; border:0; border-radius:.6cqw; padding:.7cqw; font:inherit; background:#383A40; color:#DBDEE1}
+.a-chat .sendrow{display:flex; gap:.5cqw; margin-top:.5cqw; flex-wrap:wrap}
+.a-chat .sendrow button{font:600 max(10px,1cqw) var(--body); border:0; border-radius:.5cqw; padding:.45cqw .8cqw; cursor:pointer; background:#4E5058; color:#fff}
+.a-chat .sendrow button.go{background:#5865F2}
+@keyframes popin{ from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:none } }
+.a-chat .m.new{animation:popin .5s .25s both}
+
+/* switch relay */
+.a-relay{width:13.5cqw; text-align:center; z-index:4}
+.relay-box{background:var(--navy); border-radius:1.6cqw; padding:1.2cqw .8cqw .9cqw; box-shadow:0 0 0 .3cqw rgba(123,92,255,.25), 0 18px 34px -18px rgba(60,40,160,.7); transition:all .4s}
+.relay-box .sw{width:6.4cqw; height:3.2cqw; border-radius:999px; background:var(--violet); margin:0 auto; position:relative; transition:background .3s}
+.relay-box .sw::after{content:""; position:absolute; top:.4cqw; left:3.6cqw; width:2.4cqw; height:2.4cqw; border-radius:50%; background:#fff; transition:left .3s}
+.relay-box .lights{display:flex; gap:.5cqw; justify-content:center; margin-top:.8cqw}
+.relay-box .lights i{width:.8cqw; height:.8cqw; border-radius:50%; background:var(--navy-3)}
+.a-relay.busy .lights i{background:var(--violet-2); animation:blink 1s infinite}
+.a-relay.busy .lights i:nth-child(2){animation-delay:.2s} .a-relay.busy .lights i:nth-child(3){animation-delay:.4s}
+@keyframes blink{ 50%{ opacity:.25 } }
+.relay-name{font-family:var(--display); font-weight:800; color:var(--violet); font-size:max(12px,1.6cqw); margin-top:.5cqw; line-height:1}
+.relay-sub{font-size:max(9.5px,.95cqw); color:var(--ink-3); line-height:1.25; margin-top:.2cqw}
+.a-relay.off .relay-box{background:#3a3d48; box-shadow:none}
+.a-relay.off .sw{background:#5b2a33}
+.a-relay.off .sw::after{left:.4cqw}
+.a-relay.off .relay-name{color:var(--ink-3)}
+
+/* robot */
+.a-robot{width:10.5cqw; z-index:5}
+.a-robot svg{display:block; width:100%}
+.robot-name{text-align:center; font-weight:700; font-size:max(10px,1.2cqw); line-height:1.2}
+.robot-name span{display:block; font-weight:500; color:var(--ink-3); font-size:.9em}
+.tool{position:absolute; right:-2.6cqw; top:42%; width:4.2cqw; height:4.2cqw; border-radius:50%; background:var(--card); border:2px solid var(--ink); display:grid; place-items:center; font-size:max(12px,1.9cqw); line-height:1; transition:transform .3s}
+.tool:empty{display:none}
+@keyframes bob{ 50%{ transform:translateY(-4%) } }
+.a-robot.work svg{animation:bob 1.2s ease-in-out infinite}
+
+/* bins */
+.a-bins{display:flex; gap:1.2cqw; z-index:2}
+.bin{width:9.5cqw; text-align:center; font-size:max(10px,1.2cqw); font-weight:700; color:var(--ink-3); transition:all .4s}
+.bin .cup{height:4cqw; border:2px solid var(--line); border-top:0; border-radius:0 0 1.2cqw 1.2cqw; display:grid; place-items:center; font-size:max(12px,1.8cqw); margin-bottom:.3cqw; background:var(--card); transition:all .4s}
+.bin.on{color:var(--ink); transform:translateY(-6%)}
+.bin.on[data-r="product"] .cup{border-color:var(--teal); background:color-mix(in srgb,var(--teal) 18%,var(--card)); color:var(--teal)}
+.bin.on[data-r="revenue"] .cup{border-color:#D99A1E; background:color-mix(in srgb,var(--amber-fill) 25%,var(--card)); color:var(--amber)}
+.bin.on[data-r="commitment"] .cup{border-color:var(--coral); background:color-mix(in srgb,var(--coral) 16%,var(--card)); color:var(--coral)}
+
+/* doc */
+.a-doc{width:19cqw; background:#fff; color:#202124; border-radius:.8cqw; border:1px solid #ddd; font-size:max(10px,1.2cqw); line-height:1.4; overflow:hidden; box-shadow:0 16px 30px -22px rgba(0,0,0,.5)}
+.a-doc .h{padding:.5cqw .8cqw; font-weight:700; color:#fff; background:#4285F4}
+.a-doc.sheet .h{background:#188038}
+.a-doc .b{padding:.7cqw .8cqw}
+.a-doc .b div{color:#888}
+.a-doc .b mark{background:#FFF1B8; color:#202124; padding:0 .2cqw; display:block; margin:.3cqw 0}
+
+/* founder card */
+.a-card{width:30cqw; background:#fff; color:#1D1C1D; border:1px solid #ddd; border-radius:1cqw; font-size:max(10.5px,1.18cqw); line-height:1.4; overflow:hidden; box-shadow:0 22px 44px -26px rgba(0,0,0,.55); z-index:7}
+.a-card .h{background:#3F0E40; color:#fff; padding:.55cqw .9cqw; font-weight:700; display:flex; justify-content:space-between}
+.a-card .h span{opacity:.75; font-weight:500}
+.a-card .c{padding:.8cqw .9cqw}
+.fcard{border-left:.35cqw solid #ccc; padding-left:.8cqw; margin-bottom:.6cqw}
+.fcard[data-r="product"]{border-color:#0C8573} .fcard[data-r="revenue"]{border-color:#D99A1E} .fcard[data-r="commitment"]{border-color:#D2472F}
+.fcard .t{font-weight:700}
+.fcard q{display:block; background:#F6F6F6; border-radius:.4cqw; padding:.4cqw .6cqw; margin:.3cqw 0; quotes:"“" "”"}
+.fcard .r{color:#555; font-size:.95em}
+.fcard .r a{color:#1264A3}
+.fcard .acts{display:flex; gap:.5cqw; margin-top:.5cqw}
+.fcard .acts button{font:700 max(10px,1.12cqw) var(--body); padding:.35cqw .8cqw; border-radius:.4cqw; border:1px solid #bbb; background:#fff; color:#1D1C1D; cursor:pointer}
+.fcard .acts button.pri{background:#007A5A; color:#fff; border-color:#007A5A}
+.fcard .acts button[aria-pressed="true"]{outline:2px solid #1264A3; outline-offset:1px}
+.fcard .acts button:focus-visible{outline:3px solid var(--violet)}
+.a-card .closed,.a-team .closed{font-size:.8em; font-weight:800; color:#007A5A; border:1px solid #007A5A; border-radius:.3cqw; padding:0 .3cqw; margin-left:.3cqw}
+
+/* team */
+.a-team{width:30cqw; background:#fff; color:#1D1C1D; border:1px solid #ddd; border-radius:1cqw; font-size:max(10.5px,1.2cqw); line-height:1.4; overflow:hidden; box-shadow:0 22px 44px -26px rgba(0,0,0,.55)}
+.a-team .h{background:#3F0E40; color:#fff; padding:.55cqw .9cqw; font-weight:700}
+.a-team .c{padding:.8cqw .9cqw}
+.a-team .who{display:flex; gap:.6cqw; align-items:center; margin-top:.6cqw; color:#555; font-size:.95em}
+.a-team .who i{width:2.2cqw; height:2.2cqw; border-radius:50%; background:#2F6FEB; color:#fff; display:grid; place-items:center; font-style:normal; font-weight:700; font-size:.9em}
+
+/* stamp + token */
+.a-stamp{font-family:var(--mono); font-weight:600; font-size:max(11px,1.3cqw); padding:.4cqw .9cqw; border:2px solid; border-radius:.5cqw; transform:translate(-50%,-50%) rotate(-6deg); background:var(--card); z-index:8; white-space:nowrap}
+.a-stamp.good{color:var(--ok)} .a-stamp.bad{color:var(--bad)}
+.a-token{width:3cqw; height:2.2cqw; border-radius:.4cqw; background:var(--violet); z-index:9; box-shadow:0 0 0 .4cqw rgba(123,92,255,.25)}
+.a-token::before{content:""; position:absolute; inset:0; background:linear-gradient(to bottom right, transparent 47%, rgba(255,255,255,.8) 48%, rgba(255,255,255,.8) 52%, transparent 53%), linear-gradient(to bottom left, transparent 47%, rgba(255,255,255,.8) 48%, rgba(255,255,255,.8) 52%, transparent 53%); background-size:100% 100%; clip-path:polygon(0 0,100% 0,50% 60%)}
+
+/* caption */
+.scap{display:grid; grid-template-columns:1fr auto; grid-template-rows:minmax(0,1fr); gap:6px 24px; padding:14px 18px 12px; align-items:start; height:150px; overflow:auto}
+.scap-txt{max-height:100%; overflow:auto; min-height:0; padding-right:4px}
+.scap .kick{font-size:13px; font-weight:600; color:var(--ink-3); display:flex; gap:8px; align-items:center}
+.scap .kick .shape{font-size:14px}
+.scap h3{font-family:var(--display); font-weight:800; font-size:clamp(20px,2.3vw,27px); letter-spacing:-.015em; line-height:1.1; margin:4px 0 6px}
+.scap p{margin:0; font-size:16px; line-height:1.5; color:var(--ink-2); max-width:72ch}
+.scap .meta{margin-top:7px; font-size:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.scap .meta a{color:var(--violet); font-weight:600}
+.hood{display:none; margin-top:8px; font-size:14px; color:var(--ink-2); border-left:3px solid var(--violet); padding-left:10px; line-height:1.5; max-width:80ch}
+.hood-on .hood{display:block}
+.nav{display:flex; flex-direction:column; align-items:flex-end; gap:8px}
+.nav .row{display:flex; gap:8px}
+.dots{display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; max-width:220px}
+.dots i{width:7px; height:7px; border-radius:50%; background:var(--line)}
+.dots i.on{background:var(--violet)}
+.dots i.done{background:var(--ink-3)}
+.chip{display:inline-flex; font-size:12px; font-weight:600; padding:2px 8px; border-radius:999px; border:1px solid currentColor; line-height:1.4; white-space:nowrap}
+.chip.live{color:var(--ok)} .chip.fixture{color:var(--amber)} .chip.unverified{color:var(--bad)} .chip.idea{color:var(--violet)}
+@media (max-width:760px){
+  .scap{grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) auto; height:210px; gap:8px}
+  .scap-txt{height:100%}
+  .nav{align-items:stretch} .nav .row{justify-content:space-between} .dots{justify-content:center; max-width:none}
+  .sbar .stools .mini-tog:nth-child(2){display:none}
+}
+
+/* ----- portrait stage for phones ----- */
+@container stage (max-width: 620px){
+  .a-founder{width:17cqw}
+  .ftag,.robot-name,.relay-sub{font-size:max(10px,2.6cqw)}
+  .bubble{font-size:max(11px,2.9cqw); max-width:44cqw; padding:1.4cqw 2cqw; border-radius:2cqw}
+  .a-founder .bubble{left:auto; right:0; top:104%; bottom:auto; margin:0; border-radius:2cqw}
+  .a-founder.center .bubble{max-width:60cqw}
+  .a-robot .bubble{left:50%; bottom:100%; transform:translateX(-50%); border-radius:2cqw; max-width:56cqw}
+  .a-chat{width:74cqw; font-size:max(11px,2.9cqw)} .a-chat .m{grid-template-columns:6cqw 1fr; gap:2cqw} .a-chat .av{width:6cqw; height:6cqw; font-size:2.6cqw} .a-chat .h,.a-chat .b{padding:1.8cqw 2.4cqw}
+  .a-relay{width:22cqw} .relay-box{padding:2.4cqw 1.6cqw 1.8cqw; border-radius:3cqw} .relay-box .sw{width:12cqw; height:6cqw} .relay-box .sw::after{width:4.6cqw; height:4.6cqw; top:.7cqw; left:6.7cqw} .a-relay.off .sw::after{left:.7cqw} .relay-box .lights i{width:1.6cqw; height:1.6cqw} .relay-name{font-size:4cqw}
+  .a-robot{width:18cqw} .tool{width:8cqw; height:8cqw; font-size:4cqw; right:-5cqw}
+  .bin{width:17cqw; font-size:2.6cqw} .bin .cup{height:7cqw; font-size:3.6cqw}
+  .a-doc{width:36cqw; font-size:2.6cqw}
+  .a-card,.a-team{width:88cqw; font-size:max(10.5px,2.6cqw)}
+  .sim{display:none}
+  .kick .simm{display:inline !important}
+  .a-card .h,.a-team .h,.a-card .c,.a-team .c{padding:1.4cqw 2cqw}
+  .fcard .acts button{font-size:max(11px,2.8cqw); padding:1cqw 2cqw}
+  .a-team .who i{width:5cqw; height:5cqw}
+  .a-token{width:6cqw; height:4.4cqw}
+  .a-stamp{font-size:3.2cqw}
+}
+
+
+/* =========================== SHARED PILLS =========================== */
+.mini-tog{display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:600; cursor:pointer; user-select:none; color:var(--ink-2)}
+.mini-tog input{appearance:none; width:30px; height:18px; border-radius:999px; background:var(--line); position:relative; margin:0; cursor:pointer; transition:background .2s}
+.mini-tog input::after{content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:#fff; transition:transform .2s}
+.mini-tog input:checked{background:var(--violet)}
+.mini-tog input:checked::after{transform:translateX(12px)}
+.sbtn{font:600 13.5px var(--body); border:1px solid var(--line); background:var(--card); color:var(--ink); padding:6px 12px; border-radius:8px; cursor:pointer}
+.sbtn.pri{background:var(--violet); color:#fff; border-color:var(--violet)}
+.sbtn:disabled{opacity:.4; cursor:not-allowed}
+.hood{display:none; margin-top:8px; font-size:14px; color:var(--ink-2); border-left:3px solid var(--violet); padding-left:10px; line-height:1.5; max-width:80ch}
+.hood-on .hood{display:block}
+.chip{display:inline-flex; font-size:12px; font-weight:600; padding:2px 8px; border-radius:999px; border:1px solid currentColor; line-height:1.4; white-space:nowrap}
+.chip.live{color:var(--ok)} .chip.fixture{color:var(--amber)} .chip.unverified{color:var(--bad)} .chip.idea{color:var(--violet)}
+.pill{display:inline-flex; align-items:center; font:700 12px var(--body); padding:3px 10px; border-radius:999px; letter-spacing:.01em; white-space:nowrap}
+.pill.sw{background:color-mix(in srgb,var(--violet) 16%,transparent); color:var(--violet)}
+.pill.you{background:color-mix(in srgb,var(--coral) 15%,transparent); color:var(--coral)}
+.pill.fl{background:color-mix(in srgb,var(--teal) 15%,transparent); color:var(--teal)}
+.pill.cust{background:var(--paper-2); color:var(--ink-2)}
+:root[data-theme="dark"] .pill.sw{color:var(--violet-2)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .pill.sw{color:var(--violet-2)} }
+
+/* =========================== TAGGING =========================== */
+.bens{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+.ben{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px}
+.ben .bn{display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--violet); color:#fff; font-weight:800; font-size:14px}
+.ben h3{font-family:var(--display); font-size:20px; line-height:1.2; margin:12px 0 6px}
+.ben p{margin:0; font-size:15.5px; line-height:1.5; color:var(--ink-2)}
+.gaps{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:20px}
+.gaps>div{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px 18px}
+.gaps h4{margin:0 0 8px; font-family:var(--display); font-size:18px}
+.gaps ul{list-style:none; margin:0; padding:0; font-size:15.5px; line-height:1.45; color:var(--ink-2)}
+.gaps li{display:grid; grid-template-columns:22px 1fr; gap:6px; padding:5px 0}
+.gaps .y li::before{content:"\2713"; color:var(--ok); font-weight:800}
+.gaps .n li::before{content:"\2715"; color:var(--bad); font-weight:800}
+.tag-pick{margin:0 0 18px}
+.vs-table + .pull{margin-top:2em}
+.steps-g li>div{min-width:0}
+.steps-g pre{overflow-x:auto; max-width:100%}
+.mini-slack .b + .b{margin-top:0}
+@media (max-width:980px){ .bens{grid-template-columns:1fr 1fr} }
+@media (max-width:620px){ .bens,.gaps{grid-template-columns:1fr} }
+
+/* =========================== SWITCH OFF / ON (flip) =========================== */
+.flip-pair{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:20px}
+.fp{border:1px solid var(--navy-3); border-radius:16px; padding:16px; background:rgba(255,255,255,.03); min-width:0}
+.fp.off{border-color:#7A3F4B; border-style:dashed}
+.fp.on{border-color:var(--violet)}
+.fp .pill{margin-bottom:10px}
+.fp .count{margin-top:12px}
+.fp.off .build-list .x{color:#FF8F7A}
+.fp .mesh{padding:8px}
+.flip-diff{margin:18px 0 0; font-size:15.5px; color:var(--on-navy); line-height:1.5}
+.flip .sliders{margin-top:0}
+@media (max-width:860px){ .flip-pair{grid-template-columns:1fr} }
+
+/* =========================== STORIES, SIDE BY SIDE =========================== */
+.stories{max-width:1180px; margin:36px auto 0; padding:0 24px}
+.s-tabs{display:flex; flex-wrap:wrap; gap:8px}
+.s-tab{font:600 14.5px var(--body); padding:8px 14px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink-2); cursor:pointer; display:inline-flex; gap:7px; align-items:center}
+.s-tab[aria-selected="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.s-opts{display:flex; justify-content:space-between; align-items:center; gap:10px 16px; flex-wrap:wrap; margin:16px 0 4px}
+.s-sim{font-size:13px; color:var(--ink-3)}
+.s-lede{font-size:19px; line-height:1.5; margin:14px 0 14px; max-width:70ch}
+.s-msg{display:grid; grid-template-columns:36px 1fr; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:18px}
+.s-msg .av{width:36px; height:36px; border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:700}
+.s-msg .who{font-size:14px; color:var(--ink-3)} .s-msg .who b{color:var(--ink)}
+.s-msg p{margin:2px 0 0; font-size:17px; line-height:1.5}
+.sbs-head,.srow{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px}
+.hd{border-radius:16px; padding:14px 16px; border:1px solid var(--line); background:var(--card); min-width:0}
+.hd.off{border:1px dashed color-mix(in srgb,var(--coral) 65%,var(--line))}
+.hd.on{border-color:color-mix(in srgb,var(--violet) 65%,var(--line)); background:color-mix(in srgb,var(--violet) 7%,var(--card))}
+.chain{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0 8px; font-size:13px}
+.chain i{font-style:normal; color:var(--ink-3)}
+.node{padding:4px 9px; border-radius:8px; border:1px solid var(--line); background:var(--paper); font-weight:600; white-space:nowrap}
+.node.sw{background:var(--violet); border-color:var(--violet); color:#fff}
+.node.you{border:1px dashed var(--coral); color:var(--coral); background:transparent}
+.node.fl{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.hd .cnt{margin:0; font-size:14.5px; color:var(--ink-2); line-height:1.4}
+.hd .cnt b{font-family:var(--display); font-size:22px; color:var(--ink)}
+.srow{margin-top:20px}
+.stitle{grid-column:1/-1; display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 12px; font-family:var(--display); font-weight:600; font-size:19px; line-height:1.25}
+.stitle .n{display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%; background:var(--ink); color:var(--paper); font:700 13px var(--body); flex:none; align-self:center}
+.stitle .meta{font:400 14px var(--body); display:inline-flex; gap:10px; flex-wrap:wrap; align-items:center}
+.stitle .meta a{color:var(--violet); font-weight:600}
+.scell{border-radius:14px; padding:12px 14px 14px; background:var(--card); border:1px solid var(--line); border-left-width:4px; min-width:0}
+.scell.both{grid-column:1/-1}
+.scell.off{border-left-color:var(--coral)}
+.scell.on{border-left-color:var(--violet)}
+.scell.k-fl{border-left-color:var(--teal)}
+.scell.k-cust{border-left-color:var(--ink-3)}
+.scell .cl{display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; margin-bottom:6px}
+.scell .side{font-size:12.5px; color:var(--ink-3); font-weight:600}
+.scell p{margin:0; font-size:16px; line-height:1.5; color:var(--ink-2)}
+.srow .hood{grid-column:1/-1; margin-top:0}
+.fc{background:#fff; color:#1D1C1D; border:1px solid #D9D9D9; border-left:4px solid var(--c,#999); border-radius:10px; padding:10px 12px; font-size:14.5px; line-height:1.45; margin-top:10px}
+.fc[data-r="product"]{--c:#0C8573} .fc[data-r="revenue"]{--c:#D99A1E} .fc[data-r="commitment"]{--c:#D2472F}
+.fc .t{font-weight:700}
+.fc .id{font-weight:400; color:#777; margin-left:6px}
+.fc q{display:block; background:#F3F3F3; border-radius:6px; padding:6px 9px; margin:6px 0; quotes:"\201C" "\201D"}
+.fc .r{color:#555; font-size:13.5px}
+.fc .acts{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
+.fc .acts button{font:700 13.5px var(--body); padding:6px 12px; border-radius:7px; border:1px solid #BBB; background:#fff; color:#1D1C1D; cursor:pointer}
+.fc .acts button.pri{background:#007A5A; color:#fff; border-color:#007A5A}
+.fc .acts button[aria-pressed="true"]{outline:2px solid #1264A3; outline-offset:1px}
+.closed{font-size:.8em; font-weight:800; color:#007A5A; border:1px solid #007A5A; border-radius:4px; padding:0 5px; margin-left:8px}
+.compose{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin:18px 0 0}
+.compose label{display:block; font-weight:600; margin-bottom:6px}
+.compose textarea{width:100%; font:16px var(--body); padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:var(--paper); color:var(--ink); resize:vertical}
+.sendrow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; font-size:14px; color:var(--ink-3)}
+.s-note{font-size:13.5px; color:var(--ink-3); margin:10px 0 0; max-width:75ch}
+.s-empty{margin:22px 0 0; color:var(--ink-3)}
+@media (max-width:760px){
+  .stories{padding:0 16px}
+  .sbs-head,.srow{grid-template-columns:1fr}
+}
+
+
+/* founder-focused additions */
+.logo-chip{display:inline-flex; align-items:center; background:#fff; border-radius:10px; padding:7px 12px; line-height:0}
+.logo-chip img{height:24px; width:auto; display:block}
+.built{display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; margin-top:22px; font-size:15px; color:var(--ink-2)}
+.built a:not(.logo-chip){color:var(--ink); font-weight:600}
+.top-links{display:flex; gap:18px; font-size:14px; font-weight:600; margin-left:auto; margin-right:16px}
+.top-links a{text-decoration:none; color:var(--ink-2)} .top-links a:hover{color:var(--ink)}
+@media (max-width:1000px){ .top-links{display:none} }
+.band-logo{display:block; height:34px; width:auto; margin:0 0 22px; max-width:100%}
+.swlinks{display:flex; flex-wrap:wrap; gap:8px 22px; margin:18px 0 0; font-size:15.5px; font-weight:600}
+.partners{display:flex; flex-wrap:wrap; align-items:center; gap:12px 14px; margin-top:34px; font-size:15px; color:var(--paper); opacity:.9}
+.partners a:not(.logo-chip){color:var(--paper)}
+/* scenarios + guide + footer */
+.scens{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+.scen{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px}
+.scen h3{font-family:var(--display); font-size:21px; margin:10px 0 6px; line-height:1.2}
+.scen p{font-size:15.5px; color:var(--ink-2); margin:0 0 10px; line-height:1.5}
+.scen .row{display:grid; grid-template-columns:96px 1fr; gap:8px; font-size:15px; line-height:1.45; padding:6px 0; border-top:1px solid var(--line)}
+.scen .row b.w{color:var(--violet)} .scen .row b.o{color:var(--coral)}
+@media (max-width:760px){ .scens{grid-template-columns:1fr} }
+.steps-g{list-style:none; padding:0; margin:0; counter-reset:g}
+.steps-g li{counter-increment:g; display:grid; grid-template-columns:38px 1fr; gap:12px; padding:16px 0; border-top:1px solid var(--line)}
+.steps-g li::before{content:counter(g); font-family:var(--display); font-weight:800; font-size:24px; color:var(--violet); line-height:1.2}
+.steps-g h3{margin:0 0 4px !important; font-size:19px !important}
+.steps-g p{margin:0 0 6px !important; font-size:16.5px; color:var(--ink-2)}
+.steps-g pre{font:13px/1.5 var(--mono); background:var(--navy); color:#D9D6FF; padding:12px 14px; border-radius:10px; overflow-x:auto; margin:8px 0 0}
+.steps-g a{color:var(--violet); font-weight:600; font-size:14.5px}
+
+.vt{width:100%; border-collapse:collapse; font-size:15.5px}
+.vt td{padding:10px 6px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.45}
+.vt td:last-child{text-align:right}
+footer{background:var(--ink); color:var(--paper); padding:72px 24px 48px; margin-top:96px}
+footer .in{max-width:900px; margin:0 auto}
+footer h2{font-family:var(--display); font-size:clamp(34px,5vw,58px); line-height:1; letter-spacing:-.03em; margin:0 0 14px}
+footer p{color:color-mix(in srgb,var(--paper) 72%,transparent); max-width:60ch}
+.ctas{display:flex; gap:10px; flex-wrap:wrap; margin:26px 0 40px}
+.ctas a{font:600 16px var(--body); text-decoration:none; padding:12px 16px; border-radius:10px; border:1.5px solid var(--paper)}
+.ctas a.pri{background:var(--paper); color:var(--ink)}
+.ctas a.todo{outline:2px dashed var(--amber-fill); outline-offset:3px}
+footer .fine{font-size:13.5px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="top-left"><button class="toc-btn" id="tocBtn" type="button" aria-controls="toc-nav" aria-expanded="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Contents</button><a class="brand" href="#top">FounderLoop<small>Blog</small></a></div>
+    <nav class="top-links" aria-label="Resources"><a href="https://docs.switchagents.ai/switch-rooms/getting-started" target="_blank" rel="noopener">Switch docs</a><a href="https://www.wemakedevs.org/hackathons/switch" target="_blank" rel="noopener">Hackathon</a><a href="./build-your-own.html">Build your own</a></nav>
+    <a class="cta" href="#s-fits">Architecture</a>
+  </div>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+</header>
+
+<nav class="toc" id="toc-nav" aria-label="In this post"><b>In this post</b><ul id="toc"><li><a href="#s-fits">Architecture</a></li><li><a href="#s-switch">Meet Switch</a></li><li><a href="#s-problem">The problem</a></li><li><a href="#s-tag">Why not just tag?</a></li><li><a href="#s-toolkit">The Switch pieces</a></li><li><a href="#s-flip">Take Switch away</a></li><li><a href="#s-walk">Walkthrough</a></li><li><a href="#s-tech">How it works</a></li><li><a class="ttop" href="#top">Back to top</a></li></ul></nav>
+<div class="toc-bd" id="tocBd" aria-hidden="true"></div>
+
+<main id="top">
+<article>
+  <header class="post-head">
+    <span class="post-tag" data-bind="post.tag"></span>
+    <h1 data-bind="post.title"></h1>
+    <p class="dek" data-bind="post.dek"></p>
+    <div class="byline"><span class="av" aria-hidden="true">SS</span><div><b data-bind="post.author"></b><span data-bind="post.meta"></span></div></div>
+    <div class="built"><span>Built on</span><a class="logo-chip" href="https://www.switchagents.ai/" target="_blank" rel="noopener"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDg0IiBoZWlnaHQ9IjEwMiIgdmlld0JveD0iMCAwIDQ4NCAxMDIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBZ2VudCBTd2l0Y2giPgo8cGF0aCBkPSJNMjQuNTExNyA2NS42Mjc5QzI2Ljk5NyA2NS42Mjc5IDI5LjAxMTcgNjcuNjQyNiAyOS4wMTE3IDcwLjEyNzlWNzcuMTI3OUMyOS4wMTE3IDc5LjYxMzIgMjYuOTk3IDgxLjYyNzkgMjQuNTExNyA4MS42Mjc5QzIyLjAyNjQgODEuNjI3OSAyMC4wMTE3IDc5LjYxMzIgMjAuMDExNyA3Ny4xMjc5VjcwLjEyNzlDMjAuMDExNyA2Ny42NDI2IDIyLjAyNjQgNjUuNjI3OSAyNC41MTE3IDY1LjYyNzlaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNNDIuNTExNyA2NS42Mjc5QzQ0Ljk5NyA2NS42Mjc5IDQ3LjAxMTcgNjcuNjQyNiA0Ny4wMTE3IDcwLjEyNzlWNzcuMTI3OUM0Ny4wMTE3IDc5LjYxMzIgNDQuOTk3IDgxLjYyNzkgNDIuNTExNyA4MS42Mjc5QzQwLjAyNjQgODEuNjI3OSAzOC4wMTE3IDc5LjYxMzIgMzguMDExNyA3Ny4xMjc5VjcwLjEyNzlDMzguMDExNyA2Ny42NDI2IDQwLjAyNjQgNjUuNjI3OSA0Mi41MTE3IDY1LjYyNzlaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNNTkuMzE3NCAyMC4xODI2QzYxLjgwMjcgMjAuMTgyNiA2My44MTc0IDIyLjE5NzMgNjMuODE3NCAyNC42ODI2VjMxLjY4MjZDNjMuODE3NCAzNC4xNjc5IDYxLjgwMjcgMzYuMTgyNiA1OS4zMTc0IDM2LjE4MjZDNTYuODMyMSAzNi4xODI2IDU0LjgxNzQgMzQuMTY3OSA1NC44MTc0IDMxLjY4MjZWMjQuNjgyNkM1NC44MTc0IDIyLjE5NzMgNTYuODMyMSAyMC4xODI2IDU5LjMxNzQgMjAuMTgyNloiIGZpbGw9ImJsYWNrIi8+CjxwYXRoIGQ9Ik03Ny4zMTc0IDIwLjE4MjZDNzkuODAyNyAyMC4xODI2IDgxLjgxNzQgMjIuMTk3MyA4MS44MTc0IDI0LjY4MjZWMzEuNjgyNkM4MS44MTc0IDM0LjE2NzkgNzkuODAyNyAzNi4xODI2IDc3LjMxNzQgMzYuMTgyNkM3NC44MzIxIDM2LjE4MjYgNzIuODE3NCAzNC4xNjc5IDcyLjgxNzQgMzEuNjgyNlYyNC42ODI2QzcyLjgxNzQgMjIuMTk3MyA3NC44MzIxIDIwLjE4MjYgNzcuMzE3NCAyMC4xODI2WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik04OS44MjMyIDBDOTYuNDUwNyAwIDEwMS44MjMgNS4zNzI1OCAxMDEuODIzIDEyVjc0LjIyNTZDMTAxLjgyMyA3Ny40MDgyIDEwMC41NTkgODAuNDYwNSA5OC4zMDg2IDgyLjcxMDlMODIuNzEwOSA5OC4zMDg2QzgwLjQ2MDUgMTAwLjU1OSA3Ny40MDgyIDEwMS44MjMgNzQuMjI1NiAxMDEuODIzSDEyQzUuMzcyNTkgMTAxLjgyMyAwIDk2LjQ1MDcgMCA4OS44MjMyVjI3LjU5NzdDMCAyNC40MTUxIDEuMjY0MjUgMjEuMzYyNyAzLjUxNDY1IDE5LjExMjNMMTkuMTEyMyAzLjUxNDY1QzIxLjM2MjcgMS4yNjQyNSAyNC40MTUxIDAgMjcuNTk3NyAwSDg5LjgyMzJaTTE2IDU2LjQxMjFDMTMuMjM4NiA1Ni40MTIxIDExIDU4LjY1MDcgMTEgNjEuNDEyMVY4NC44MjMyQzExIDg4LjEzNjkgMTMuNjg2MyA5MC44MjMyIDE3IDkwLjgyMzJINjkuNjY4OUM3Mi44NTE1IDkwLjgyMzIgNzUuOTAzOSA4OS41NTkgNzguMTU0MyA4Ny4zMDg2TDg3LjMwODYgNzguMTU0M0M4OS41NTkgNzUuOTAzOSA5MC44MjMyIDcyLjg1MTUgOTAuODIzMiA2OS42Njg5VjYxLjQxMjFDOTAuODIzMiA1OC42NTA3IDg4LjU4NDcgNTYuNDEyMSA4NS44MjMyIDU2LjQxMjFIMTZaTTMyLjE1NDMgMTFDMjguOTcxNyAxMSAyNS45MTk0IDEyLjI2NDIgMjMuNjY4OSAxNC41MTQ2TDE0LjUxNDYgMjMuNjY4OUMxMi4yNjQzIDI1LjkxOTQgMTEgMjguOTcxNyAxMSAzMi4xNTQzVjQwLjQxMjFDMTEgNDMuMTczNSAxMy4yMzg2IDQ1LjQxMjEgMTYgNDUuNDEyMUg4NS44MjMyQzg4LjU4NDcgNDUuNDEyMSA5MC44MjMyIDQzLjE3MzUgOTAuODIzMiA0MC40MTIxVjE3QzkwLjgyMzIgMTMuNjg2MyA4OC4xMzY5IDExIDg0LjgyMzIgMTFIMzIuMTU0M1oiIGZpbGw9ImJsYWNrIi8+CjxwYXRoIGQ9Ik00MzUuMDE1IDg1LjY0NzlDNDMzLjM1OCA4NS42NDc5IDQzMi4wMTUgODQuMzA0OCA0MzIuMDE1IDgyLjY0NzlWMTEuMzc0QzQzMi4wMTUgOS43MTcxNyA0MzMuMzU4IDguMzc0MDIgNDM1LjAxNSA4LjM3NDAySDQ0Mi45MjRDNDQ0LjU4MSA4LjM3NDAyIDQ0NS45MjQgOS43MTcxNyA0NDUuOTI0IDExLjM3NFYzOC41MzA1QzQ0NS45MjQgMzkuMTkwMyA0NDYuNDU5IDM5LjcyNTIgNDQ3LjExOSAzOS43MjUyQzQ0Ny41OTkgMzkuNzI1MiA0NDguMDMgMzkuNDM1OSA0NDguMjMzIDM5LjAwMDlDNDQ5LjYxOSAzNi4wNDEgNDUxLjU3MiAzMy43NDM0IDQ1NC4wOTMgMzIuMTA4MkM0NTYuODE2IDMwLjI2ODMgNDYwLjE2NCAyOS4zNDg0IDQ2NC4xMzkgMjkuMzQ4NEM0NjkuNTg0IDI5LjM0ODQgNDc0LjA3NCAzMS4xMTQ2IDQ3Ny42MDYgMzQuNjQ3MkM0ODEuMjEyIDM4LjE3OTcgNDgzLjAxNSA0My42OTkyIDQ4My4wMTUgNTEuMjA1OVY4Mi42NDhDNDgzLjAxNSA4NC4zMDQ4IDQ4MS42NzIgODUuNjQ3OSA0ODAuMDE1IDg1LjY0NzlINDcyLjEwNkM0NzAuNDQ5IDg1LjY0NzkgNDY5LjEwNiA4NC4zMDQ4IDQ2OS4xMDYgODIuNjQ3OVY1NC41MTc2QzQ2OS4xMDYgNTAuNjE3MSA0NjguMTQ5IDQ3LjU2MjkgNDY2LjIzNiA0NS4zNTUxQzQ2NC4zOTYgNDMuMDczNyA0NjEuNzEgNDEuOTMzIDQ1OC4xNzcgNDEuOTMzQzQ1NC4xMyA0MS45MzMgNDUxLjA3NiA0NS43MzExIDQ0OS4wMTUgNDguNTI3N0M0NDYuOTU0IDUxLjI1MDYgNDQ1LjkyNCA1NC45MzA0IDQ0NS45MjQgNTkuNTY2OFY4Mi42NDhDNDQ1LjkyNCA4NC4zMDQ4IDQ0NC41ODEgODUuNjQ3OSA0NDIuOTI0IDg1LjY0NzlINDM1LjAxNVoiIGZpbGw9ImJsYWNrIi8+CjxwYXRoIGQ9Ik0zOTcuNTg3IDg3LjE4NzhDMzkyLjIxNSA4Ny4xODc4IDM4Ny4zNTggODYuMTIwNyAzODMuMDE2IDgzLjk4NjVDMzc4LjY3NCA4MS43Nzg2IDM3NS4yMTUgNzguNjE0MSAzNzIuNjM5IDc0LjQ5MjhDMzcwLjEzNyA3MC4yOTggMzY4Ljg4NiA2NS4yNTY3IDM2OC44ODYgNTkuMzY5MlY1OC4wNDQ1QzM2OC44ODYgNTIuMTU3IDM3MC4xNzQgNDcuMDc5IDM3Mi43NDkgNDIuODEwNUMzNzUuMzI1IDM4LjQ2ODUgMzc4Ljc4NCAzNS4xNTY3IDM4My4xMjYgMzIuODc1M0MzODcuNDY4IDMwLjUyMDMgMzkyLjI4OSAyOS4zNDI4IDM5Ny41ODcgMjkuMzQyOEM0MDUuMjQxIDI5LjM0MjggNDExLjQ2IDMxLjMyOTggNDE2LjI0NCAzNS4zMDM5QzQyMC4zMzkgMzguNzA1OSA0MjMuMTEyIDQzLjAyNDcgNDI0LjU2NSA0OC4yNjAzQzQyNC45ODUgNDkuNzc1NCA0MjQuMDA3IDUxLjI4MzYgNDIyLjQ4NCA1MS42NzY1TDQxNC43NjMgNTMuNjY5MUM0MTMuMDI0IDU0LjExNzggNDExLjMxMiA1Mi45MjYzIDQxMC42NzIgNTEuMjQ4NkM0MDkuOTQ5IDQ5LjM1NDkgNDA4LjgyNiA0Ny42NDYxIDQwNy4zMDIgNDYuMTIyM0M0MDQuOTQ3IDQzLjc2NzIgNDAxLjYzNSA0Mi41ODk3IDM5Ny4zNjcgNDIuNTg5N0MzOTMuMzkzIDQyLjU4OTcgMzg5Ljk3IDQzLjk4OCAzODcuMSA0Ni43ODQ2QzM4NC4yMyA0OS41ODEyIDM4Mi43OTUgNTMuNDQ0OSAzODIuNzk1IDU4LjM3NTdWNTkuMDM4QzM4Mi43OTUgNjMuOTY4OCAzODQuMjMgNjcuNjg1NCAzODcuMSA3MC4xODc2QzM4OS45NyA3Mi42ODk4IDM5My4zOTMgNzMuOTQwOSAzOTcuMzY3IDczLjk0MDlDNDAxLjYzNSA3My45NDA5IDQwNC44NzMgNzIuODczOCA0MDcuMDgxIDcwLjczOTVDNDA4LjY2OSA2OS4yNTM4IDQwOS44NjUgNjcuNDExNSA0MTAuNjY5IDY1LjIxMjVDNDExLjI2MyA2My41ODYyIDQxMi45MTggNjIuNDg0MiA0MTQuNTk4IDYyLjkwNDJMNDIyLjQ1OSA2NC44Njk0QzQyMy45OTIgNjUuMjUyOSA0MjQuOTgyIDY2Ljc2NzQgNDI0LjU2MSA2OC4yOTEzQzQyMy4xMTYgNzMuNTE3NCA0MjAuMzgxIDc3LjgyOTIgNDE2LjM1NCA4MS4yMjY3QzQxMS42NDQgODUuMjAwOCA0MDUuMzg4IDg3LjE4NzggMzk3LjU4NyA4Ny4xODc4WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTMzOS4yODcgODUuNjQ3OUMzMzYuNzg1IDg1LjY0NzkgMzM0LjcyNCA4NC44Mzg0IDMzMy4xMDUgODMuMjE5M0MzMzEuNTYgODEuNjAwMyAzMzAuNzg3IDc5LjUzOTYgMzMwLjc4NyA3Ny4wMzc0VjQ3LjE0MDhDMzMwLjc4NyA0NS40ODQgMzI5LjQ0NCA0NC4xNDA4IDMyNy43ODcgNDQuMTQwOEgzMTcuNTZDMzE1LjkwMyA0NC4xNDA4IDMxNC41NiA0Mi43OTc3IDMxNC41NiA0MS4xNDA4VjMzLjg5MzlDMzE0LjU2IDMyLjIzNyAzMTUuOTAzIDMwLjg5MzkgMzE3LjU2IDMwLjg5MzlIMzI3Ljc4N0MzMjkuNDQ0IDMwLjg5MzkgMzMwLjc4NyAyOS41NTA3IDMzMC43ODcgMjcuODkzOVYxMS4zNzRDMzMwLjc4NyA5LjcxNzE3IDMzMi4xMyA4LjM3NDAyIDMzMy43ODcgOC4zNzQwMkgzNDEuNjk2QzM0My4zNTMgOC4zNzQwMiAzNDQuNjk2IDkuNzE3MTcgMzQ0LjY5NiAxMS4zNzRWMjcuODkzOUMzNDQuNjk2IDI5LjU1MDcgMzQ2LjA0IDMwLjg5MzkgMzQ3LjY5NiAzMC44OTM5SDM2MS40NTZDMzYzLjExMyAzMC44OTM5IDM2NC40NTYgMzIuMjM3IDM2NC40NTYgMzMuODkzOVY0MS4xNDA4QzM2NC40NTYgNDIuNzk3NyAzNjMuMTEzIDQ0LjE0MDggMzYxLjQ1NiA0NC4xNDA4SDM0Ny42OTZDMzQ2LjA0IDQ0LjE0MDggMzQ0LjY5NiA0NS40ODQgMzQ0LjY5NiA0Ny4xNDA4VjY5LjA4OTJDMzQ0LjY5NiA3MS4yOTcxIDM0NS42OSA3Mi40MDEgMzQ3LjY3NyA3Mi40MDFIMzU5LjQ2OUMzNjEuMTI2IDcyLjQwMSAzNjIuNDY5IDczLjc0NDEgMzYyLjQ2OSA3NS40MDFWODIuNjQ3OUMzNjIuNDY5IDg0LjMwNDggMzYxLjEyNiA4NS42NDc5IDM1OS40NjkgODUuNjQ3OUgzMzkuMjg3WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTI5My45OTkgMjUuMTUwMUMyOTEuMTI5IDI1LjE1MDEgMjg4LjY2NCAyNC4xNTY2IDI4Ni42MDMgMjIuMTY5NkMyODQuNTQzIDIwLjEwODkgMjgzLjUxMiAxNy42MDY3IDI4My41MTIgMTQuNjYzQzI4My41MTIgMTEuNzE5MiAyODQuNTQzIDkuMjUzNzggMjg2LjYwMyA3LjI2Njc0QzI4OC42NjQgNS4yMDYxIDI5MS4xMjkgNC4xNzU3OCAyOTMuOTk5IDQuMTc1NzhDMjk2Ljg3IDQuMTc1NzggMjk5LjMzNSA1LjIwNjEgMzAxLjM5NiA3LjI2Njc0QzMwMy40NTYgOS4yNTM3OCAzMDQuNDg3IDExLjcxOTIgMzA0LjQ4NyAxNC42NjNDMzA0LjQ4NyAxNy42MDY3IDMwMy40NTYgMjAuMTA4OSAzMDEuMzk2IDIyLjE2OTZDMjk5LjMzNSAyNC4xNTY2IDI5Ni44NyAyNS4xNTAxIDI5My45OTkgMjUuMTUwMVpNMjcxLjYwOSA4NS42NDQ2QzI2OS45NTMgODUuNjQ0NiAyNjguNjA5IDg0LjMwMTQgMjY4LjYwOSA4Mi42NDQ2Vjc1LjM5NzZDMjY4LjYwOSA3My43NDA4IDI2OS45NTMgNzIuMzk3NiAyNzEuNjA5IDcyLjM5NzZIMjg0LjE1NUMyODUuODEyIDcyLjM5NzYgMjg3LjE1NSA3MS4wNTQ1IDI4Ny4xNTUgNjkuMzk3NlY0Ny4xMzc0QzI4Ny4xNTUgNDUuNDgwNiAyODUuODEyIDQ0LjEzNzQgMjg0LjE1NSA0NC4xMzc0SDI3Mi45MzRDMjcxLjI3NyA0NC4xMzc0IDI2OS45MzQgNDIuNzk0MyAyNjkuOTM0IDQxLjEzNzRWMzMuODkwNUMyNjkuOTM0IDMyLjIzMzYgMjcxLjI3NyAzMC44OTA1IDI3Mi45MzQgMzAuODkwNUgyOTguMDY0QzI5OS43MjEgMzAuODkwNSAzMDEuMDY0IDMyLjIzMzYgMzAxLjA2NCAzMy44OTA1VjY5LjM5NzZDMzAxLjA2NCA3MS4wNTQ1IDMwMi40MDggNzIuMzk3NiAzMDQuMDY0IDcyLjM5NzZIMzEzLjk2MUMzMTUuNjE4IDcyLjM5NzYgMzE2Ljk2MSA3My43NDA4IDMxNi45NjEgNzUuMzk3NlY4Mi42NDQ2QzMxNi45NjEgODQuMzAxNCAzMTUuNjE4IDg1LjY0NDYgMzEzLjk2MSA4NS42NDQ2SDI3MS42MDlaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMjAxLjcyMyA4NS42NDY3QzIwMC4xNDQgODUuNjQ2NyAxOTguODM1IDg0LjQyMTkgMTk4LjczIDgyLjg0NThMMTk1LjQ4NiAzNC4wOTE3QzE5NS4zNzEgMzIuMzYwMyAxOTYuNzQ0IDMwLjg5MjYgMTk4LjQ4IDMwLjg5MjZIMjA1LjI0OUMyMDYuODM4IDMwLjg5MjYgMjA4LjE1MSAzMi4xMzEzIDIwOC4yNDQgMzMuNzE3M0wyMTAuNTA3IDcyLjM5OTdWNzIuODk4OUMyMTAuNTA3IDczLjYzMDUgMjExLjEwMSA3NC4yMjM2IDIxMS44MzIgNzQuMjIzNkMyMTIuNTY0IDc0LjIyMzYgMjEzLjE1NyA3My42MzA1IDIxMy4xNTcgNzIuODk4OVY3Mi4zOTk3TDIxNS43MyAzMy42OTM1QzIxNS44MzUgMzIuMTE3NCAyMTcuMTQ0IDMwLjg5MjYgMjE4LjcyNCAzMC44OTI2SDIzNi4wNzFDMjM3LjY1IDMwLjg5MjYgMjM4Ljk1OSAzMi4xMTc0IDIzOS4wNjQgMzMuNjkzNkwyNDEuNjM4IDcyLjM5OTdWNzIuODk4OUMyNDEuNjM4IDczLjYzMDUgMjQyLjIzMSA3NC4yMjM2IDI0Mi45NjIgNzQuMjIzNkMyNDMuNjk0IDc0LjIyMzYgMjQ0LjI4NyA3My42MzA1IDI0NC4yODcgNzIuODk4OVY3Mi4zOTk3TDI0Ni41NTEgMzMuNzE3M0MyNDYuNjQzIDMyLjEzMTMgMjQ3Ljk1NyAzMC44OTI2IDI0OS41NDUgMzAuODkyNkgyNTYuMzE1QzI1OC4wNSAzMC44OTI2IDI1OS40MjQgMzIuMzYwMyAyNTkuMzA4IDM0LjA5MTdMMjU2LjA2NSA4Mi44NDU4QzI1NS45NiA4NC40MjE5IDI1NC42NTEgODUuNjQ2NyAyNTMuMDcxIDg1LjY0NjdIMjM0LjU5OEMyMzMuMDI3IDg1LjY0NjcgMjMxLjcyMyA4NC40MzU1IDIzMS42MDYgODIuODY5NUwyMjguNzIyIDQ0LjEzOTVWMzguODQwOEMyMjguNzIyIDM4LjEwOTEgMjI4LjEyOSAzNy41MTYxIDIyNy4zOTcgMzcuNTE2MUMyMjYuNjY2IDM3LjUxNjEgMjI2LjA3MyAzOC4xMDkxIDIyNi4wNzMgMzguODQwOFY0NC4xMzk1TDIyMy4xODggODIuODY5NUMyMjMuMDcyIDg0LjQzNTUgMjIxLjc2NyA4NS42NDY3IDIyMC4xOTcgODUuNjQ2N0gyMDEuNzIzWiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTE2Ni44NDYgODcuMTg4OEMxNjEuMTc5IDg3LjE4ODggMTU2LjU4IDg2LjI2ODkgMTUzLjA0NyA4NC40MjlDMTQ5LjU4OCA4Mi41ODkyIDE0Ni45MzkgODAuMzQ0NSAxNDUuMDk5IDc3LjY5NTFDMTQzLjkzMSA3NS45NDQgMTQzLjAzNyA3NC4yMjUxIDE0Mi40MTYgNzIuNTM4MkMxNDEuODkgNzEuMTA2OCAxNDIuNzcyIDY5LjYwOTEgMTQ0LjIyMSA2OS4xMzQzTDE1MS40NDMgNjYuNzY4NkMxNTMuMDg5IDY2LjIyOTMgMTU0LjgyNiA2Ny4yMjE2IDE1NS42ODQgNjguNzI2N0MxNTYuMzM1IDY5Ljg2OTIgMTU3LjE4NiA3MC45NDUzIDE1OC4yMzUgNzEuOTU0OEMxNjAuMTQ5IDczLjcyMTEgMTYzLjAxOSA3NC42MDQyIDE2Ni44NDYgNzQuNjA0MkMxNzAuMzA1IDc0LjYwNDIgMTcyLjY2IDc0LjA4OSAxNzMuOTExIDczLjA1ODdDMTc1LjIzNiA3MS45NTQ4IDE3NS44OTggNzAuNzc3MyAxNzUuODk4IDY5LjUyNjJDMTc1Ljg5OCA2OC4wNTQzIDE3NS4xMjUgNjYuNzY2NCAxNzMuNTggNjUuNjYyNUMxNzIuMDM0IDY0LjU1ODYgMTY4Ljk0MyA2My44MjI2IDE2NC4zMDcgNjMuNDU0N0MxNTguMTk5IDYyLjkzOTUgMTUzLjMwNSA2MS4zMjA0IDE0OS42MjUgNTguNTk3NEMxNDUuOTQ1IDU1Ljg3NDUgMTQ0LjEwNSA1MS45MzcyIDE0NC4xMDUgNDYuNzg1NlY0Ni4xMjMyQzE0NC4xMDUgNDIuNTE3MSAxNDUuMDk5IDM5LjQ2MyAxNDcuMDg2IDM2Ljk2MDhDMTQ5LjA3MyAzNC40NTg2IDE1MS42NDkgMzIuNTgxOSAxNTQuODEzIDMxLjMzMDhDMTU3Ljk3OCAzMC4wMDYxIDE2MS4zMjYgMjkuMzQzOCAxNjQuODU5IDI5LjM0MzhDMTY5LjQ5NSAyOS4zNDM4IDE3My4zMjIgMzAuMDc5NyAxNzYuMzQgMzEuNTUxNkMxNzkuMzU3IDMyLjk0OTkgMTgxLjcxMiAzNC43MTYxIDE4My40MDUgMzYuODUwNEMxODQuNDUzIDM4LjExNzEgMTg1LjMyIDM5LjM4MzkgMTg2LjAwNSA0MC42NTA3QzE4Ni43NjUgNDIuMDU1MSAxODUuOTk2IDQzLjcyMTggMTg0LjUxNiA0NC4zMTkzTDE3Ny41MzMgNDcuMTM2OUMxNzUuOTI5IDQ3Ljc4NDEgMTc0LjE1OCA0Ni44ODUzIDE3My4wOTggNDUuNTE4NkMxNzIuNTUyIDQ0LjgxNTQgMTcxLjkwMyA0NC4yMDc0IDE3MS4xNTEgNDMuNjk0NkMxNjkuNTMyIDQyLjUxNzEgMTY3LjQzNSA0MS45Mjg0IDE2NC44NTkgNDEuOTI4NEMxNjIuNTc4IDQxLjkyODQgMTYwLjgxMSA0Mi4zNjk5IDE1OS41NiA0My4yNTMxQzE1OC4zODMgNDQuMDYyNiAxNTcuNzk0IDQ1LjA5MjkgMTU3Ljc5NCA0Ni4zNDRDMTU3Ljc5NCA0OC4xMTAzIDE1OC43MTQgNDkuMzYxNCAxNjAuNTU0IDUwLjA5NzNDMTYyLjM5NCA1MC44MzMzIDE2NS43NDIgNTEuNDk1NiAxNzAuNTk5IDUyLjA4NDRDMTc2LjE5MiA1Mi42NzMxIDE4MC43NTUgNTQuMzY1OCAxODQuMjg4IDU3LjE2MjRDMTg3LjgyIDU5Ljg4NTMgMTg5LjU4NyA2My43MTIyIDE4OS41ODcgNjguNjQzMVY2OS4zMDU0QzE4OS41ODcgNzQuNjc3OCAxODcuNiA3OS4wMTk4IDE4My42MjUgODIuMzMxNkMxNzkuNjUxIDg1LjU2OTcgMTc0LjA1OCA4Ny4xODg4IDE2Ni44NDYgODcuMTg4OFoiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPgo=" alt="Agent Switch"></a><span>for the <a href="https://www.wemakedevs.org/hackathons/switch" target="_blank" rel="noopener">Flip the Switch hackathon</a> by <a href="https://www.wemakedevs.org" target="_blank" rel="noopener">WeMakeDevs</a> and <a href="https://www.linkedin.com/company/devtools-academy" target="_blank" rel="noopener">DevTools Academy</a></span></div>
+  </header>
+
+  <!-- ARCHITECTURE -->
+  <section id="s-fits" data-toc="Architecture">
+    <div class="prose">
+      <h2>Architecture</h2>
+      <p>Switch connects the chat rooms. One FounderLoop agent turns qualifying messages into decisions the founder can make in Slack.</p>
+    </div>
+    <div class="wide">
+      <figure>
+        <div class="architecture">
+          <ol role="list" aria-label="FounderLoop architecture from message to verdict">
+            <li><strong>Source chat</strong><span>A customer or teammate posts in a connected chat room.</span></li>
+            <li class="switch"><strong>Switch</strong><span>Delivers the room event to the agent.</span></li>
+            <li class="agent"><strong>FounderLoop</strong><span>Checks the source, classifies the signal, and adds context.</span></li>
+            <li><strong>Founder in Slack</strong><span>Accepts, rejects, or comments on the private card.</span></li>
+            <li><strong>Verdict in Slack</strong><span>The right private channel gets the decision and source link.</span></li>
+          </ol>
+        </div>
+        <figcaption>Product, Sales, or Support receives the verdict through Switch. General requests stay in the founder channel. <a href="#s-tech">Read how it works</a>.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <div class="wide" style="margin-top:28px">
+    <figure>
+      <div class="hero-fig">
+        <svg viewBox="-130 0 700 440" role="img" aria-labelledby="loopT">
+          <title id="loopT">The FounderLoop cycle: a user says it, evidence is kept, the founder decides, the team is told.</title>
+          <path id="loopPath" d="M220 50 C330 50 390 110 390 220 C390 330 330 390 220 390 C110 390 50 330 50 220 C50 110 110 50 220 50 Z" fill="none" stroke="var(--line)" stroke-width="2"/>
+          <g id="loopStops"></g>
+          <circle r="10" fill="var(--violet)" id="loopToken"><animateMotion dur="8s" repeatCount="indefinite"><mpath href="#loopPath"/></animateMotion></circle>
+          <text x="220" y="226" text-anchor="middle" style="font-family:var(--display);font-weight:800;font-size:30px">FounderLoop</text>
+        </svg>
+        <p class="say" data-bind="post.heroSay"></p>
+      </div>
+    </figure>
+  </div>
+
+  <div class="prose" id="intro"></div>
+
+  <!-- SWITCH -->
+  <section id="s-switch" data-toc="Meet Switch">
+    <div class="prose"><h2 data-bind="sw.h"></h2><p data-bind="sw.p"></p></div>
+    <div class="switch-band">
+      <img class="band-logo" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDg0IiBoZWlnaHQ9IjEwMiIgdmlld0JveD0iMCAwIDQ4NCAxMDIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBZ2VudCBTd2l0Y2giPgo8cGF0aCBkPSJNMjQuNTExNyA2NS42Mjc5QzI2Ljk5NyA2NS42Mjc5IDI5LjAxMTcgNjcuNjQyNiAyOS4wMTE3IDcwLjEyNzlWNzcuMTI3OUMyOS4wMTE3IDc5LjYxMzIgMjYuOTk3IDgxLjYyNzkgMjQuNTExNyA4MS42Mjc5QzIyLjAyNjQgODEuNjI3OSAyMC4wMTE3IDc5LjYxMzIgMjAuMDExNyA3Ny4xMjc5VjcwLjEyNzlDMjAuMDExNyA2Ny42NDI2IDIyLjAyNjQgNjUuNjI3OSAyNC41MTE3IDY1LjYyNzlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNDIuNTExNyA2NS42Mjc5QzQ0Ljk5NyA2NS42Mjc5IDQ3LjAxMTcgNjcuNjQyNiA0Ny4wMTE3IDcwLjEyNzlWNzcuMTI3OUM0Ny4wMTE3IDc5LjYxMzIgNDQuOTk3IDgxLjYyNzkgNDIuNTExNyA4MS42Mjc5QzQwLjAyNjQgODEuNjI3OSAzOC4wMTE3IDc5LjYxMzIgMzguMDExNyA3Ny4xMjc5VjcwLjEyNzlDMzguMDExNyA2Ny42NDI2IDQwLjAyNjQgNjUuNjI3OSA0Mi41MTE3IDY1LjYyNzlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNTkuMzE3NCAyMC4xODI2QzYxLjgwMjcgMjAuMTgyNiA2My44MTc0IDIyLjE5NzMgNjMuODE3NCAyNC42ODI2VjMxLjY4MjZDNjMuODE3NCAzNC4xNjc5IDYxLjgwMjcgMzYuMTgyNiA1OS4zMTc0IDM2LjE4MjZDNTYuODMyMSAzNi4xODI2IDU0LjgxNzQgMzQuMTY3OSA1NC44MTc0IDMxLjY4MjZWMjQuNjgyNkM1NC44MTc0IDIyLjE5NzMgNTYuODMyMSAyMC4xODI2IDU5LjMxNzQgMjAuMTgyNloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik03Ny4zMTc0IDIwLjE4MjZDNzkuODAyNyAyMC4xODI2IDgxLjgxNzQgMjIuMTk3MyA4MS44MTc0IDI0LjY4MjZWMzEuNjgyNkM4MS44MTc0IDM0LjE2NzkgNzkuODAyNyAzNi4xODI2IDc3LjMxNzQgMzYuMTgyNkM3NC44MzIxIDM2LjE4MjYgNzIuODE3NCAzNC4xNjc5IDcyLjgxNzQgMzEuNjgyNlYyNC42ODI2QzcyLjgxNzQgMjIuMTk3MyA3NC44MzIxIDIwLjE4MjYgNzcuMzE3NCAyMC4xODI2WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik04OS44MjMyIDBDOTYuNDUwNyAwIDEwMS44MjMgNS4zNzI1OCAxMDEuODIzIDEyVjc0LjIyNTZDMTAxLjgyMyA3Ny40MDgyIDEwMC41NTkgODAuNDYwNSA5OC4zMDg2IDgyLjcxMDlMODIuNzEwOSA5OC4zMDg2QzgwLjQ2MDUgMTAwLjU1OSA3Ny40MDgyIDEwMS44MjMgNzQuMjI1NiAxMDEuODIzSDEyQzUuMzcyNTkgMTAxLjgyMyAwIDk2LjQ1MDcgMCA4OS44MjMyVjI3LjU5NzdDMCAyNC40MTUxIDEuMjY0MjUgMjEuMzYyNyAzLjUxNDY1IDE5LjExMjNMMTkuMTEyMyAzLjUxNDY1QzIxLjM2MjcgMS4yNjQyNSAyNC40MTUxIDAgMjcuNTk3NyAwSDg5LjgyMzJaTTE2IDU2LjQxMjFDMTMuMjM4NiA1Ni40MTIxIDExIDU4LjY1MDcgMTEgNjEuNDEyMVY4NC44MjMyQzExIDg4LjEzNjkgMTMuNjg2MyA5MC44MjMyIDE3IDkwLjgyMzJINjkuNjY4OUM3Mi44NTE1IDkwLjgyMzIgNzUuOTAzOSA4OS41NTkgNzguMTU0MyA4Ny4zMDg2TDg3LjMwODYgNzguMTU0M0M4OS41NTkgNzUuOTAzOSA5MC44MjMyIDcyLjg1MTUgOTAuODIzMiA2OS42Njg5VjYxLjQxMjFDOTAuODIzMiA1OC42NTA3IDg4LjU4NDcgNTYuNDEyMSA4NS44MjMyIDU2LjQxMjFIMTZaTTMyLjE1NDMgMTFDMjguOTcxNyAxMSAyNS45MTk0IDEyLjI2NDIgMjMuNjY4OSAxNC41MTQ2TDE0LjUxNDYgMjMuNjY4OUMxMi4yNjQzIDI1LjkxOTQgMTEgMjguOTcxNyAxMSAzMi4xNTQzVjQwLjQxMjFDMTEgNDMuMTczNSAxMy4yMzg2IDQ1LjQxMjEgMTYgNDUuNDEyMUg4NS44MjMyQzg4LjU4NDcgNDUuNDEyMSA5MC44MjMyIDQzLjE3MzUgOTAuODIzMiA0MC40MTIxVjE3QzkwLjgyMzIgMTMuNjg2MyA4OC4xMzY5IDExIDg0LjgyMzIgMTFIMzIuMTU0M1oiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik00MzUuMDE1IDg1LjY0ODlDNDMzLjM1OCA4NS42NDg5IDQzMi4wMTUgODQuMzA1OCA0MzIuMDE1IDgyLjY0ODlWMTEuMzc1QzQzMi4wMTUgOS43MTgxNSA0MzMuMzU4IDguMzc1IDQzNS4wMTUgOC4zNzVINDQyLjkyNEM0NDQuNTgxIDguMzc1IDQ0NS45MjQgOS43MTgxNSA0NDUuOTI0IDExLjM3NVYzOC41MzE1QzQ0NS45MjQgMzkuMTkxMyA0NDYuNDU5IDM5LjcyNjEgNDQ3LjExOSAzOS43MjYxQzQ0Ny41OTkgMzkuNzI2MSA0NDguMDMgMzkuNDM2OSA0NDguMjMzIDM5LjAwMTlDNDQ5LjYxOSAzNi4wNDIgNDUxLjU3MiAzMy43NDQ0IDQ1NC4wOTMgMzIuMTA5MUM0NTYuODE2IDMwLjI2OTMgNDYwLjE2NCAyOS4zNDkzIDQ2NC4xMzkgMjkuMzQ5M0M0NjkuNTg0IDI5LjM0OTMgNDc0LjA3NCAzMS4xMTU2IDQ3Ny42MDYgMzQuNjQ4MUM0ODEuMjEyIDM4LjE4MDcgNDgzLjAxNSA0My43MDAyIDQ4My4wMTUgNTEuMjA2OFY4Mi42NDg5QzQ4My4wMTUgODQuMzA1OCA0ODEuNjcyIDg1LjY0ODkgNDgwLjAxNSA4NS42NDg5SDQ3Mi4xMDZDNDcwLjQ0OSA4NS42NDg5IDQ2OS4xMDYgODQuMzA1OCA0NjkuMTA2IDgyLjY0ODlWNTQuNTE4NkM0NjkuMTA2IDUwLjYxODEgNDY4LjE0OSA0Ny41NjM5IDQ2Ni4yMzYgNDUuMzU2MUM0NjQuMzk2IDQzLjA3NDcgNDYxLjcxIDQxLjkzNCA0NTguMTc3IDQxLjkzNEM0NTQuMTMgNDEuOTM0IDQ1MS4wNzYgNDUuNzMyMSA0NDkuMDE1IDQ4LjUyODZDNDQ2Ljk1NCA1MS4yNTE2IDQ0NS45MjQgNTQuOTMxMyA0NDUuOTI0IDU5LjU2NzhWODIuNjQ4OUM0NDUuOTI0IDg0LjMwNTggNDQ0LjU4MSA4NS42NDg5IDQ0Mi45MjQgODUuNjQ4OUg0MzUuMDE1WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTM5Ny41ODcgODcuMTg4OEMzOTIuMjE1IDg3LjE4ODggMzg3LjM1OCA4Ni4xMjE3IDM4My4wMTYgODMuOTg3NUMzNzguNjc0IDgxLjc3OTYgMzc1LjIxNSA3OC42MTUxIDM3Mi42MzkgNzQuNDkzOEMzNzAuMTM3IDcwLjI5ODkgMzY4Ljg4NiA2NS4yNTc3IDM2OC44ODYgNTkuMzcwMlY1OC4wNDU1QzM2OC44ODYgNTIuMTU4IDM3MC4xNzQgNDcuMDggMzcyLjc0OSA0Mi44MTE1QzM3NS4zMjUgMzguNDY5NCAzNzguNzg0IDM1LjE1NzcgMzgzLjEyNiAzMi44NzYzQzM4Ny40NjggMzAuNTIxMyAzOTIuMjg5IDI5LjM0MzggMzk3LjU4NyAyOS4zNDM4QzQwNS4yNDEgMjkuMzQzOCA0MTEuNDYgMzEuMzMwOCA0MTYuMjQ0IDM1LjMwNDlDNDIwLjMzOSAzOC43MDY5IDQyMy4xMTIgNDMuMDI1NyA0MjQuNTY1IDQ4LjI2MTNDNDI0Ljk4NSA0OS43NzY0IDQyNC4wMDcgNTEuMjg0NiA0MjIuNDg0IDUxLjY3NzVMNDE0Ljc2MyA1My42N0M0MTMuMDI0IDU0LjExODcgNDExLjMxMiA1Mi45MjcyIDQxMC42NzIgNTEuMjQ5NkM0MDkuOTQ5IDQ5LjM1NTkgNDA4LjgyNiA0Ny42NDcxIDQwNy4zMDIgNDYuMTIzMkM0MDQuOTQ3IDQzLjc2ODIgNDAxLjYzNSA0Mi41OTA3IDM5Ny4zNjcgNDIuNTkwN0MzOTMuMzkzIDQyLjU5MDcgMzg5Ljk3IDQzLjk4OSAzODcuMSA0Ni43ODU2QzM4NC4yMyA0OS41ODIyIDM4Mi43OTUgNTMuNDQ1OSAzODIuNzk1IDU4LjM3NjdWNTkuMDM5QzM4Mi43OTUgNjMuOTY5OCAzODQuMjMgNjcuNjg2MyAzODcuMSA3MC4xODg1QzM4OS45NyA3Mi42OTA3IDM5My4zOTMgNzMuOTQxOCAzOTcuMzY3IDczLjk0MThDNDAxLjYzNSA3My45NDE4IDQwNC44NzMgNzIuODc0NyA0MDcuMDgxIDcwLjc0MDVDNDA4LjY2OSA2OS4yNTQ4IDQwOS44NjUgNjcuNDEyNSA0MTAuNjY5IDY1LjIxMzVDNDExLjI2MyA2My41ODcxIDQxMi45MTggNjIuNDg1MiA0MTQuNTk4IDYyLjkwNTJMNDIyLjQ1OSA2NC44NzA0QzQyMy45OTIgNjUuMjUzOSA0MjQuOTgyIDY2Ljc2ODMgNDI0LjU2MSA2OC4yOTIyQzQyMy4xMTYgNzMuNTE4NCA0MjAuMzgxIDc3LjgzMDIgNDE2LjM1NCA4MS4yMjc3QzQxMS42NDQgODUuMjAxOCA0MDUuMzg4IDg3LjE4ODggMzk3LjU4NyA4Ny4xODg4WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTMzOS4yODcgODUuNjQ4OUMzMzYuNzg1IDg1LjY0ODkgMzM0LjcyNCA4NC44Mzk0IDMzMy4xMDUgODMuMjIwM0MzMzEuNTYgODEuNjAxMiAzMzAuNzg3IDc5LjU0MDYgMzMwLjc4NyA3Ny4wMzg0VjQ3LjE0MThDMzMwLjc4NyA0NS40ODQ5IDMyOS40NDQgNDQuMTQxOCAzMjcuNzg3IDQ0LjE0MThIMzE3LjU2QzMxNS45MDMgNDQuMTQxOCAzMTQuNTYgNDIuNzk4NiAzMTQuNTYgNDEuMTQxOFYzMy44OTQ4QzMxNC41NiAzMi4yMzggMzE1LjkwMyAzMC44OTQ4IDMxNy41NiAzMC44OTQ4SDMyNy43ODdDMzI5LjQ0NCAzMC44OTQ4IDMzMC43ODcgMjkuNTUxNyAzMzAuNzg3IDI3Ljg5NDhWMTEuMzc1QzMzMC43ODcgOS43MTgxNSAzMzIuMTMgOC4zNzUgMzMzLjc4NyA4LjM3NUgzNDEuNjk2QzM0My4zNTMgOC4zNzUgMzQ0LjY5NiA5LjcxODE1IDM0NC42OTYgMTEuMzc1VjI3Ljg5NDhDMzQ0LjY5NiAyOS41NTE3IDM0Ni4wNCAzMC44OTQ4IDM0Ny42OTYgMzAuODk0OEgzNjEuNDU2QzM2My4xMTMgMzAuODk0OCAzNjQuNDU2IDMyLjIzOCAzNjQuNDU2IDMzLjg5NDhWNDEuMTQxOEMzNjQuNDU2IDQyLjc5ODYgMzYzLjExMyA0NC4xNDE4IDM2MS40NTYgNDQuMTQxOEgzNDcuNjk2QzM0Ni4wNCA0NC4xNDE4IDM0NC42OTYgNDUuNDg0OSAzNDQuNjk2IDQ3LjE0MThWNjkuMDkwMkMzNDQuNjk2IDcxLjI5OCAzNDUuNjkgNzIuNDAyIDM0Ny42NzcgNzIuNDAySDM1OS40NjlDMzYxLjEyNiA3Mi40MDIgMzYyLjQ2OSA3My43NDUxIDM2Mi40NjkgNzUuNDAyVjgyLjY0ODlDMzYyLjQ2OSA4NC4zMDU4IDM2MS4xMjYgODUuNjQ4OSAzNTkuNDY5IDg1LjY0ODlIMzM5LjI4N1oiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yOTMuOTk5IDI1LjE1MDFDMjkxLjEyOSAyNS4xNTAxIDI4OC42NjQgMjQuMTU2NiAyODYuNjAzIDIyLjE2OTZDMjg0LjU0MyAyMC4xMDg5IDI4My41MTIgMTcuNjA2NyAyODMuNTEyIDE0LjY2M0MyODMuNTEyIDExLjcxOTIgMjg0LjU0MyA5LjI1Mzc4IDI4Ni42MDMgNy4yNjY3NEMyODguNjY0IDUuMjA2MSAyOTEuMTI5IDQuMTc1NzggMjkzLjk5OSA0LjE3NTc4QzI5Ni44NyA0LjE3NTc4IDI5OS4zMzUgNS4yMDYxIDMwMS4zOTYgNy4yNjY3NEMzMDMuNDU2IDkuMjUzNzggMzA0LjQ4NyAxMS43MTkyIDMwNC40ODcgMTQuNjYzQzMwNC40ODcgMTcuNjA2NyAzMDMuNDU2IDIwLjEwODkgMzAxLjM5NiAyMi4xNjk2QzI5OS4zMzUgMjQuMTU2NiAyOTYuODcgMjUuMTUwMSAyOTMuOTk5IDI1LjE1MDFaTTI3MS42MDkgODUuNjQ0NkMyNjkuOTUzIDg1LjY0NDYgMjY4LjYwOSA4NC4zMDE0IDI2OC42MDkgODIuNjQ0NlY3NS4zOTc2QzI2OC42MDkgNzMuNzQwOCAyNjkuOTUzIDcyLjM5NzYgMjcxLjYwOSA3Mi4zOTc2SDI4NC4xNTVDMjg1LjgxMiA3Mi4zOTc2IDI4Ny4xNTUgNzEuMDU0NSAyODcuMTU1IDY5LjM5NzZWNDcuMTM3NEMyODcuMTU1IDQ1LjQ4MDYgMjg1LjgxMiA0NC4xMzc0IDI4NC4xNTUgNDQuMTM3NEgyNzIuOTM0QzI3MS4yNzcgNDQuMTM3NCAyNjkuOTM0IDQyLjc5NDMgMjY5LjkzNCA0MS4xMzc0VjMzLjg5MDVDMjY5LjkzNCAzMi4yMzM2IDI3MS4yNzcgMzAuODkwNSAyNzIuOTM0IDMwLjg5MDVIMjk4LjA2NEMyOTkuNzIxIDMwLjg5MDUgMzAxLjA2NCAzMi4yMzM2IDMwMS4wNjQgMzMuODkwNVY2OS4zOTc2QzMwMS4wNjQgNzEuMDU0NSAzMDIuNDA4IDcyLjM5NzYgMzA0LjA2NCA3Mi4zOTc2SDMxMy45NjFDMzE1LjYxOCA3Mi4zOTc2IDMxNi45NjEgNzMuNzQwOCAzMTYuOTYxIDc1LjM5NzZWODIuNjQ0NkMzMTYuOTYxIDg0LjMwMTQgMzE1LjYxOCA4NS42NDQ2IDMxMy45NjEgODUuNjQ0NkgyNzEuNjA5WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIwMS43MjMgODUuNjQ2N0MyMDAuMTQ0IDg1LjY0NjcgMTk4LjgzNSA4NC40MjE5IDE5OC43MyA4Mi44NDU4TDE5NS40ODYgMzQuMDkxN0MxOTUuMzcxIDMyLjM2MDMgMTk2Ljc0NCAzMC44OTI2IDE5OC40OCAzMC44OTI2SDIwNS4yNDlDMjA2LjgzOCAzMC44OTI2IDIwOC4xNTEgMzIuMTMxMyAyMDguMjQ0IDMzLjcxNzNMMjEwLjUwNyA3Mi4zOTk3VjcyLjg5ODlDMjEwLjUwNyA3My42MzA1IDIxMS4xMDEgNzQuMjIzNiAyMTEuODMyIDc0LjIyMzZDMjEyLjU2NCA3NC4yMjM2IDIxMy4xNTcgNzMuNjMwNSAyMTMuMTU3IDcyLjg5ODlWNzIuMzk5N0wyMTUuNzMgMzMuNjkzNUMyMTUuODM1IDMyLjExNzQgMjE3LjE0NCAzMC44OTI2IDIxOC43MjQgMzAuODkyNkgyMzYuMDcxQzIzNy42NSAzMC44OTI2IDIzOC45NTkgMzIuMTE3NCAyMzkuMDY0IDMzLjY5MzZMMjQxLjYzOCA3Mi4zOTk3VjcyLjg5ODlDMjQxLjYzOCA3My42MzA1IDI0Mi4yMzEgNzQuMjIzNiAyNDIuOTYyIDc0LjIyMzZDMjQzLjY5NCA3NC4yMjM2IDI0NC4yODcgNzMuNjMwNSAyNDQuMjg3IDcyLjg5ODlWNzIuMzk5N0wyNDYuNTUxIDMzLjcxNzNDMjQ2LjY0MyAzMi4xMzEzIDI0Ny45NTcgMzAuODkyNiAyNDkuNTQ1IDMwLjg5MjZIMjU2LjMxNUMyNTguMDUgMzAuODkyNiAyNTkuNDI0IDMyLjM2MDMgMjU5LjMwOCAzNC4wOTE3TDI1Ni4wNjUgODIuODQ1OEMyNTUuOTYgODQuNDIxOSAyNTQuNjUxIDg1LjY0NjcgMjUzLjA3MSA4NS42NDY3SDIzNC41OThDMjMzLjAyNyA4NS42NDY3IDIzMS43MjMgODQuNDM1NSAyMzEuNjA2IDgyLjg2OTVMMjI4LjcyMiA0NC4xMzk1VjM4Ljg0MDhDMjI4LjcyMiAzOC4xMDkxIDIyOC4xMjkgMzcuNTE2MSAyMjcuMzk3IDM3LjUxNjFDMjI2LjY2NiAzNy41MTYxIDIyNi4wNzMgMzguMTA5MSAyMjYuMDczIDM4Ljg0MDhWNDQuMTM5NUwyMjMuMTg4IDgyLjg2OTVDMjIzLjA3MiA4NC40MzU1IDIyMS43NjcgODUuNjQ2NyAyMjAuMTk3IDg1LjY0NjdIMjAxLjcyM1oiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xNjYuODQ2IDg3LjE4ODhDMTYxLjE3OSA4Ny4xODg4IDE1Ni41OCA4Ni4yNjg5IDE1My4wNDcgODQuNDI5QzE0OS41ODggODIuNTg5MiAxNDYuOTM5IDgwLjM0NDUgMTQ1LjA5OSA3Ny42OTUxQzE0My45MzEgNzUuOTQ0IDE0My4wMzcgNzQuMjI1MSAxNDIuNDE2IDcyLjUzODJDMTQxLjg5IDcxLjEwNjggMTQyLjc3MiA2OS42MDkxIDE0NC4yMjEgNjkuMTM0M0wxNTEuNDQzIDY2Ljc2ODZDMTUzLjA4OSA2Ni4yMjkzIDE1NC44MjYgNjcuMjIxNiAxNTUuNjg0IDY4LjcyNjdDMTU2LjMzNSA2OS44NjkyIDE1Ny4xODYgNzAuOTQ1MyAxNTguMjM1IDcxLjk1NDhDMTYwLjE0OSA3My43MjExIDE2My4wMTkgNzQuNjA0MiAxNjYuODQ2IDc0LjYwNDJDMTcwLjMwNSA3NC42MDQyIDE3Mi42NiA3NC4wODkgMTczLjkxMSA3My4wNTg3QzE3NS4yMzYgNzEuOTU0OCAxNzUuODk4IDcwLjc3NzMgMTc1Ljg5OCA2OS41MjYyQzE3NS44OTggNjguMDU0MyAxNzUuMTI1IDY2Ljc2NjQgMTczLjU4IDY1LjY2MjVDMTcyLjAzNCA2NC41NTg2IDE2OC45NDMgNjMuODIyNiAxNjQuMzA3IDYzLjQ1NDdDMTU4LjE5OSA2Mi45Mzk1IDE1My4zMDUgNjEuMzIwNCAxNDkuNjI1IDU4LjU5NzRDMTQ1Ljk0NSA1NS44NzQ1IDE0NC4xMDUgNTEuOTM3MiAxNDQuMTA1IDQ2Ljc4NTZWNDYuMTIzMkMxNDQuMTA1IDQyLjUxNzEgMTQ1LjA5OSAzOS40NjMgMTQ3LjA4NiAzNi45NjA4QzE0OS4wNzMgMzQuNDU4NiAxNTEuNjQ5IDMyLjU4MTkgMTU0LjgxMyAzMS4zMzA4QzE1Ny45NzggMzAuMDA2MSAxNjEuMzI2IDI5LjM0MzggMTY0Ljg1OSAyOS4zNDM4QzE2OS40OTUgMjkuMzQzOCAxNzMuMzIyIDMwLjA3OTcgMTc2LjM0IDMxLjU1MTZDMTc5LjM1NyAzMi45NDk5IDE4MS43MTIgMzQuNzE2MSAxODMuNDA1IDM2Ljg1MDRDMTg0LjQ1MyAzOC4xMTcxIDE4NS4zMiAzOS4zODM5IDE4Ni4wMDUgNDAuNjUwN0MxODYuNzY1IDQyLjA1NTEgMTg1Ljk5NiA0My43MjE4IDE4NC41MTYgNDQuMzE5M0wxNzcuNTMzIDQ3LjEzNjlDMTc1LjkyOSA0Ny43ODQxIDE3NC4xNTggNDYuODg1MyAxNzMuMDk4IDQ1LjUxODZDMTcyLjU1MiA0NC44MTU0IDE3MS45MDMgNDQuMjA3NCAxNzEuMTUxIDQzLjY5NDZDMTY5LjUzMiA0Mi41MTcxIDE2Ny40MzUgNDEuOTI4NCAxNjQuODU5IDQxLjkyODRDMTYyLjU3OCA0MS45Mjg0IDE2MC44MTEgNDIuMzY5OSAxNTkuNTYgNDMuMjUzMUMxNTguMzgzIDQ0LjA2MjYgMTU3Ljc5NCA0NS4wOTI5IDE1Ny43OTQgNDYuMzQ0QzE1Ny43OTQgNDguMTEwMyAxNTguNzE0IDQ5LjM2MTQgMTYwLjU1NCA1MC4wOTczQzE2Mi4zOTQgNTAuODMzMyAxNjUuNzQyIDUxLjQ5NTYgMTcwLjU5OSA1Mi4wODQ0QzE3Ni4xOTIgNTIuNjczMSAxODAuNzU1IDU0LjM2NTggMTg0LjI4OCA1Ny4xNjI0QzE4Ny44MiA1OS44ODUzIDE4OS41ODcgNjMuNzEyMiAxODkuNTg3IDY4LjY0MzFWNjkuMzA1NEMxODkuNTg3IDc0LjY3NzggMTg3LjYgNzkuMDE5OCAxODMuNjI1IDgyLjMzMTZDMTc5LjY1MSA4NS41Njk3IDE3NC4wNTggODcuMTg4OCAxNjYuODQ2IDg3LjE4ODhaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K" alt="Agent Switch">
+      <p class="giant" aria-hidden="true">Switch</p>
+      <div class="inner">
+        <p class="l" data-bind="sw.lede"></p>
+        <div class="facts" id="facts"></div>
+        <p class="not" data-bind="sw.not"></p>
+        <p class="swlinks"><a href="https://docs.switchagents.ai/switch-rooms/getting-started" target="_blank" rel="noopener">Switch documentation</a><a href="https://github.com/sandbox-quantum/switch" target="_blank" rel="noopener">Switch on GitHub</a><a href="https://www.switchagents.ai/" target="_blank" rel="noopener">switchagents.ai</a><a href="https://www.wemakedevs.org/hackathons/switch" target="_blank" rel="noopener">Flip the Switch hackathon</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section id="s-problem" data-toc="The problem">
+    <div class="prose" id="problemProse"></div>
+    <div class="wide">
+      <figure>
+        <div class="week" id="week">
+          <div class="seg" role="group" aria-label="Show the week as">
+            <button type="button" data-mode="raw" aria-pressed="true">What users said</button>
+            <button type="button" data-mode="lost" aria-pressed="false">What reached you</button>
+            <button type="button" data-mode="loop" aria-pressed="false">With FounderLoop</button>
+          </div>
+          <div class="week-scroll"><div class="week-grid" id="weekGrid"></div></div>
+          <div class="week-out" id="weekOut" aria-live="polite"></div>
+        </div>
+        <figcaption data-bind="problem.weekCap"></figcaption>
+      </figure>
+    </div>
+    <div class="prose" id="painsLead"></div>
+    <div class="wide"><div class="pains" id="pains"></div></div>
+  </section>
+
+  <!-- TAGGING -->
+  <section id="s-tag" data-toc="Why not just tag?">
+    <div class="prose" id="tagProse"></div>
+    <div class="wide">
+      <div class="seg tag-pick" id="tagSeg" role="group" aria-label="Who gets tagged"></div>
+      <figure>
+        <div class="vs" id="vs"></div>
+        <div class="gaps" id="tagGaps"></div>
+        <figcaption data-bind="tag.cap"></figcaption>
+      </figure>
+    </div>
+    <div class="prose" id="benLead"></div>
+    <div class="wide"><div class="bens" id="bens"></div></div>
+    <div class="prose">
+      <div style="overflow-x:auto; margin-bottom:2em"><table class="vs-table" id="vsTable"></table></div>
+      <p class="pull" data-bind="tag.pull"></p>
+      <p data-bind="tag.after"></p>
+    </div>
+  </section>
+
+  <!-- TOOLKIT -->
+  <section id="s-toolkit" data-toc="The Switch pieces">
+    <div class="prose"><h2 data-bind="toolkit.h"></h2><p data-bind="toolkit.p"></p></div>
+    <div class="wide"><div class="tiles" id="tiles"></div></div>
+  </section>
+
+  <!-- TAKE SWITCH AWAY -->
+  <section id="s-flip" data-toc="Take Switch away">
+    <div class="prose"><h2 data-bind="flip.h"></h2><p data-bind="flip.p"></p></div>
+    <div class="wide">
+      <div class="flip" id="flip">
+        <div class="sliders">
+          <label>Chat apps: <b id="nPlatLbl"></b><input type="range" id="nPlat" min="1" max="5" value="3"></label>
+          <label>Agents: <b id="nAgentLbl"></b><input type="range" id="nAgent" min="1" max="6" value="3"></label>
+        </div>
+        <div class="flip-pair">
+          <div class="fp off">
+            <span class="pill you">Without Switch</span>
+            <div class="mesh"><svg id="meshOff" viewBox="0 0 520 400" role="img" aria-label="Without Switch, every chat app needs its own connection to every agent"></svg></div>
+            <div class="count bad" id="cntOff"></div>
+            <div class="count-lbl" id="cntLblOff"></div>
+            <h3>What FounderLoop would build instead</h3>
+            <ul class="build-list" id="listOff"></ul>
+          </div>
+          <div class="fp on">
+            <span class="pill sw">With Switch</span>
+            <div class="mesh"><svg id="meshOn" viewBox="0 0 520 400" role="img" aria-label="With Switch, each chat app and each agent connects once"></svg></div>
+            <div class="count" id="cntOn"></div>
+            <div class="count-lbl" id="cntLblOn"></div>
+            <h3>What FounderLoop builds today</h3>
+            <ul class="build-list" id="listOn"></ul>
+          </div>
+        </div>
+        <p class="flip-diff" id="flipDiff" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORIES -->
+  <section id="s-walk" data-toc="Walkthrough">
+    <div class="prose"><h2 data-bind="walk.h"></h2><p data-bind="walk.p"></p></div>
+    <div class="story-scroll" id="storyScroll">
+      <div class="story-sticky">
+        <div class="scard" id="scard">
+          <div class="sbar">
+            <div class="stabs" id="stabs" role="tablist" aria-label="Stories"></div>
+            <div class="stools">
+              <label class="mini-tog"><input type="checkbox" id="swTog" checked> Switch on</label>
+              <label class="mini-tog"><input type="checkbox" id="wHoodTog"> Under the hood</label>
+              <button class="sbtn" id="autoBtn" type="button" aria-pressed="false">Autoplay</button>
+            </div>
+          </div>
+          <div class="stage-wrap">
+            <div class="stage" id="stage" aria-hidden="false">
+              <span class="sim">Simulated story: nothing is sent anywhere</span>
+              <svg class="wires" id="wires" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path id="w-in"/><path id="w-agent"/><path id="w-out"/></svg>
+              <div id="actors"></div>
+            </div>
+          </div>
+          <div class="scap">
+            <div class="scap-txt" id="scapTxt" tabindex="0">
+              <div class="kick" id="sKick"></div>
+              <h3 id="sTitle"></h3>
+              <p id="sText"></p>
+              <div class="meta" id="sMeta"></div>
+              <div class="hood" id="sHood"></div>
+            </div>
+            <div class="nav">
+              <div class="row"><button class="sbtn" id="prevBtn" type="button">Previous</button><button class="sbtn pri" id="nextBtn" type="button">Next</button></div>
+              <div class="dots" id="dots" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-tech" data-toc="How it works">
+    <div class="prose">
+      <h2>How it works</h2>
+      <p>FounderLoop is a Node.js agent that listens to authorized Switch rooms over a WebSocket. Ordinary messages can trigger the flow without a mention, and source rooms are read-only for the agent.</p>
+
+      <h3>Verify the message and add context</h3>
+      <p>Every founder card includes the verbatim quote and a link to the exact message. FounderLoop holds a signal if it can’t verify that link. Product checks the roadmap in Google Docs, Revenue looks for account context in a Leads Sheet, and Commitment surfaces incidents or explicit promises from trusted staff. An optional General route covers direct requests for the founder.</p>
+
+      <h3>Decide in private Slack</h3>
+      <p>The authorized founder can accept, reject, or comment with a Slack button or a text command. FounderLoop records one decision per card and sends the verdict with the same source link. The card closes when Switch acknowledges the verdict.</p>
+
+      <h3>Keep a record across restarts</h3>
+      <p>SQLite stores the source evidence, decision, and delivery queue. If a send may have succeeded, FounderLoop holds it for an operator to check before retrying.</p>
+
+      <p><a href="https://github.com/sohamsshah/founderloop" target="_blank" rel="noopener">Explore the FounderLoop implementation on GitHub</a> for the full routing logic, integration details, and setup. <a href="./build-your-own.html">Read the setup guide on this site</a>.</p>
+    </div>
+  </section>
+
+  <!-- STORIES -->
+  
+
+  
+  
+
+  
+</article>
+</main>
+
+<footer>
+  <div class="in">
+    <h2 data-bind="footer.h"></h2>
+    <p data-bind="footer.p"></p>
+    <div class="ctas" id="ctas"></div>
+    <div class="partners"><a class="logo-chip" href="https://www.switchagents.ai/" target="_blank" rel="noopener"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDg0IiBoZWlnaHQ9IjEwMiIgdmlld0JveD0iMCAwIDQ4NCAxMDIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJBZ2VudCBTd2l0Y2giPgo8cGF0aCBkPSJNMjQuNTExNyA2NS42Mjc5QzI2Ljk5NyA2NS42Mjc5IDI5LjAxMTcgNjcuNjQyNiAyOS4wMTE3IDcwLjEyNzlWNzcuMTI3OUMyOS4wMTE3IDc5LjYxMzIgMjYuOTk3IDgxLjYyNzkgMjQuNTExNyA4MS42Mjc5QzIyLjAyNjQgODEuNjI3OSAyMC4wMTE3IDc5LjYxMzIgMjAuMDExNyA3Ny4xMjc5VjcwLjEyNzlDMjAuMDExNyA2Ny42NDI2IDIyLjAyNjQgNjUuNjI3OSAyNC41MTE3IDY1LjYyNzlaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNNDIuNTExNyA2NS42Mjc5QzQ0Ljk5NyA2NS42Mjc5IDQ3LjAxMTcgNjcuNjQyNiA0Ny4wMTE3IDcwLjEyNzlWNzcuMTI3OUM0Ny4wMTE3IDc5LjYxMzIgNDQuOTk3IDgxLjYyNzkgNDIuNTExNyA4MS42Mjc5QzQwLjAyNjQgODEuNjI3OSAzOC4wMTE3IDc5LjYxMzIgMzguMDExNyA3Ny4xMjc5VjcwLjEyNzlDMzguMDExNyA2Ny42NDI2IDQwLjAyNjQgNjUuNjI3OSA0Mi41MTE3IDY1LjYyNzlaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNNTkuMzE3NCAyMC4xODI2QzYxLjgwMjcgMjAuMTgyNiA2My44MTc0IDIyLjE5NzMgNjMuODE3NCAyNC42ODI2VjMxLjY4MjZDNjMuODE3NCAzNC4xNjc5IDYxLjgwMjcgMzYuMTgyNiA1OS4zMTc0IDM2LjE4MjZDNTYuODMyMSAzNi4xODI2IDU0LjgxNzQgMzQuMTY3OSA1NC44MTc0IDMxLjY4MjZWMjQuNjgyNkM1NC44MTc0IDIyLjE5NzMgNTYuODMyMSAyMC4xODI2IDU5LjMxNzQgMjAuMTgyNloiIGZpbGw9ImJsYWNrIi8+CjxwYXRoIGQ9Ik03Ny4zMTc0IDIwLjE4MjZDNzkuODAyNyAyMC4xODI2IDgxLjgxNzQgMjIuMTk3MyA4MS44MTc0IDI0LjY4MjZWMzEuNjgyNkM4MS44MTc0IDM0LjE2NzkgNzkuODAyNyAzNi4xODI2IDc3LjMxNzQgMzYuMTgyNkM3NC44MzIxIDM2LjE4MjYgNzIuODE3NCAzNC4xNjc5IDcyLjgxNzQgMzEuNjgyNlYyNC42ODI2QzcyLjgxNzQgMjIuMTk3MyA3NC44MzIxIDIwLjE4MjYgNzcuMzE3NCAyMC4xODI2WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik04OS44MjMyIDBDOTYuNDUwNyAwIDEwMS44MjMgNS4zNzI1OCAxMDEuODIzIDEyVjc0LjIyNTZDMTAxLjgyMyA3Ny40MDgyIDEwMC41NTkgODAuNDYwNSA5OC4zMDg2IDgyLjcxMDlMODIuNzEwOSA5OC4zMDg2QzgwLjQ2MDUgMTAwLjU1OSA3Ny40MDgyIDEwMS44MjMgNzQuMjI1NiAxMDEuODIzSDEyQzUuMzcyNTkgMTAxLjgyMyAwIDk2LjQ1MDcgMCA4OS44MjMyVjI3LjU5NzdDMCAyNC40MTUxIDEuMjY0MjUgMjEuMzYyNyAzLjUxNDY1IDE5LjExMjNMMTkuMTEyMyAzLjUxNDY1QzIxLjM2MjcgMS4yNjQyNSAyNC40MTUxIDAgMjcuNTk3NyAwSDg5LjgyMzJaTTE2IDU2LjQxMjFDMTMuMjM4NiA1Ni40MTIxIDExIDU4LjY1MDcgMTEgNjEuNDEyMVY4NC44MjMyQzExIDg4LjEzNjkgMTMuNjg2MyA5MC44MjMyIDE3IDkwLjgyMzJINjkuNjY4OUM3Mi44NTE1IDkwLjgyMzIgNzUuOTAzOSA4OS41NTkgNzguMTU0MyA4Ny4zMDg2TDg3LjMwODYgNzguMTU0M0M4OS41NTkgNzUuOTAzOSA5MC44MjMyIDcyLjg1MTUgOTAuODIzMiA2OS42Njg5VjYxLjQxMjFDOTAuODIzMiA1OC42NTA3IDg4LjU4NDcgNTYuNDEyMSA4NS44MjMyIDU2LjQxMjFIMTZaTTMyLjE1NDMgMTFDMjguOTcxNyAxMSAyNS45MTk0IDEyLjI2NDIgMjMuNjY4OSAxNC41MTQ2TDE0LjUxNDYgMjMuNjY4OUMxMi4yNjQzIDI1LjkxOTQgMTEgMjguOTcxNyAxMSAzMi4xNTQzVjQwLjQxMjFDMTEgNDMuMTczNSAxMy4yMzg2IDQ1LjQxMjEgMTYgNDUuNDEyMUg4NS44MjMyQzg4LjU4NDcgNDUuNDEyMSA5MC44MjMyIDQzLjE3MzUgOTAuODIzMiA0MC40MTIxVjE3QzkwLjgyMzIgMTMuNjg2MyA4OC4xMzY5IDExIDg0LjgyMzIgMTFIMzIuMTU0M1oiIGZpbGw9ImJsYWNrIi8+CjxwYXRoIGQ9Ik00MzUuMDE1IDg1LjY0NzlDNDMzLjM1OCA4NS42NDc5IDQzMi4wMTUgODQuMzA0OCA0MzIuMDE1IDgyLjY0NzlWMTEuMzc0QzQzMi4wMTUgOS43MTcxNyA0MzMuMzU4IDguMzc0MDIgNDM1LjAxNSA4LjM3NDAySDQ0Mi45MjRDNDQ0LjU4MSA4LjM3NDAyIDQ0NS45MjQgOS43MTcxNyA0NDUuOTI0IDExLjM3NFYzOC41MzA1QzQ0NS45MjQgMzkuMTkwMyA0NDYuNDU5IDM5LjcyNTIgNDQ3LjExOSAzOS43MjUyQzQ0Ny41OTkgMzkuNzI1MiA0NDguMDMgMzkuNDM1OSA0NDguMjMzIDM5LjAwMDlDNDQ5LjYxOSAzNi4wNDEgNDUxLjU3MiAzMy43NDM0IDQ1NC4wOTMgMzIuMTA4MkM0NTYuODE2IDMwLjI2ODMgNDYwLjE2NCAyOS4zNDg0IDQ2NC4xMzkgMjkuMzQ4NEM0NjkuNTg0IDI5LjM0ODQgNDc0LjA3NCAzMS4xMTQ2IDQ3Ny42MDYgMzQuNjQ3MkM0ODEuMjEyIDM4LjE3OTcgNDgzLjAxNSA0My42OTkyIDQ4My4wMTUgNTEuMjA1OVY4Mi42NDhDNDgzLjAxNSA4NC4zMDQ4IDQ4MS42NzIgODUuNjQ3OSA0ODAuMDE1IDg1LjY0NzlINDcyLjEwNkM0NzAuNDQ5IDg1LjY0NzkgNDY5LjEwNiA4NC4zMDQ4IDQ2OS4xMDYgODIuNjQ3OVY1NC41MTc2QzQ2OS4xMDYgNTAuNjE3MSA0NjguMTQ5IDQ3LjU2MjkgNDY2LjIzNiA0NS4zNTUxQzQ2NC4zOTYgNDMuMDczNyA0NjEuNzEgNDEuOTMzIDQ1OC4xNzcgNDEuOTMzQzQ1NC4xMyA0MS45MzMgNDUxLjA3NiA0NS43MzExIDQ0OS4wMTUgNDguNTI3N0M0NDYuOTU0IDUxLjI1MDYgNDQ1LjkyNCA1NC45MzA0IDQ0NS45MjQgNTkuNTY2OFY4Mi42NDhDNDQ1LjkyNCA4NC4zMDQ4IDQ0NC41ODEgODUuNjQ3OSA0NDIuOTI0IDg1LjY0NzlINDM1LjAxNVoiIGZpbGw9ImJsYWNrIi8+CjxwYXRoIGQ9Ik0zOTcuNTg3IDg3LjE4NzhDMzkyLjIxNSA4Ny4xODc4IDM4Ny4zNTggODYuMTIwNyAzODMuMDE2IDgzLjk4NjVDMzc4LjY3NCA4MS43Nzg2IDM3NS4yMTUgNzguNjE0MSAzNzIuNjM5IDc0LjQ5MjhDMzcwLjEzNyA3MC4yOTggMzY4Ljg4NiA2NS4yNTY3IDM2OC44ODYgNTkuMzY5MlY1OC4wNDQ1QzM2OC44ODYgNTIuMTU3IDM3MC4xNzQgNDcuMDc5IDM3Mi43NDkgNDIuODEwNUMzNzUuMzI1IDM4LjQ2ODUgMzc4Ljc4NCAzNS4xNTY3IDM4My4xMjYgMzIuODc1M0MzODcuNDY4IDMwLjUyMDMgMzkyLjI4OSAyOS4zNDI4IDM5Ny41ODcgMjkuMzQyOEM0MDUuMjQxIDI5LjM0MjggNDExLjQ2IDMxLjMyOTggNDE2LjI0NCAzNS4zMDM5QzQyMC4zMzkgMzguNzA1OSA0MjMuMTEyIDQzLjAyNDcgNDI0LjU2NSA0OC4yNjAzQzQyNC45ODUgNDkuNzc1NCA0MjQuMDA3IDUxLjI4MzYgNDIyLjQ4NCA1MS42NzY1TDQxNC43NjMgNTMuNjY5MUM0MTMuMDI0IDU0LjExNzggNDExLjMxMiA1Mi45MjYzIDQxMC42NzIgNTEuMjQ4NkM0MDkuOTQ5IDQ5LjM1NDkgNDA4LjgyNiA0Ny42NDYxIDQwNy4zMDIgNDYuMTIyM0M0MDQuOTQ3IDQzLjc2NzIgNDAxLjYzNSA0Mi41ODk3IDM5Ny4zNjcgNDIuNTg5N0MzOTMuMzkzIDQyLjU4OTcgMzg5Ljk3IDQzLjk4OCAzODcuMSA0Ni43ODQ2QzM4NC4yMyA0OS41ODEyIDM4Mi43OTUgNTMuNDQ0OSAzODIuNzk1IDU4LjM3NTdWNTkuMDM4QzM4Mi43OTUgNjMuOTY4OCAzODQuMjMgNjcuNjg1NCAzODcuMSA3MC4xODc2QzM4OS45NyA3Mi42ODk4IDM5My4zOTMgNzMuOTQwOSAzOTcuMzY3IDczLjk0MDlDNDAxLjYzNSA3My45NDA5IDQwNC44NzMgNzIuODczOCA0MDcuMDgxIDcwLjczOTVDNDA4LjY2OSA2OS4yNTM4IDQwOS44NjUgNjcuNDExNSA0MTAuNjY5IDY1LjIxMjVDNDExLjI2MyA2My41ODYyIDQxMi45MTggNjIuNDg0MiA0MTQuNTk4IDYyLjkwNDJMNDIyLjQ1OSA2NC44Njk0QzQyMy45OTIgNjUuMjUyOSA0MjQuOTgyIDY2Ljc2NzQgNDI0LjU2MSA2OC4yOTEzQzQyMy4xMTYgNzMuNTE3NCA0MjAuMzgxIDc3LjgyOTIgNDE2LjM1NCA4MS4yMjY3QzQxMS42NDQgODUuMjAwOCA0MDUuMzg4IDg3LjE4NzggMzk3LjU4NyA4Ny4xODc4WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTMzOS4yODcgODUuNjQ3OUMzMzYuNzg1IDg1LjY0NzkgMzM0LjcyNCA4NC44Mzg0IDMzMy4xMDUgODMuMjE5M0MzMzEuNTYgODEuNjAwMyAzMzAuNzg3IDc5LjUzOTYgMzMwLjc4NyA3Ny4wMzc0VjQ3LjE0MDhDMzMwLjc4NyA0NS40ODQgMzI5LjQ0NCA0NC4xNDA4IDMyNy43ODcgNDQuMTQwOEgzMTcuNTZDMzE1LjkwMyA0NC4xNDA4IDMxNC41NiA0Mi43OTc3IDMxNC41NiA0MS4xNDA4VjMzLjg5MzlDMzE0LjU2IDMyLjIzNyAzMTUuOTAzIDMwLjg5MzkgMzE3LjU2IDMwLjg5MzlIMzI3Ljc4N0MzMjkuNDQ0IDMwLjg5MzkgMzMwLjc4NyAyOS41NTA3IDMzMC43ODcgMjcuODkzOVYxMS4zNzRDMzMwLjc4NyA5LjcxNzE3IDMzMi4xMyA4LjM3NDAyIDMzMy43ODcgOC4zNzQwMkgzNDEuNjk2QzM0My4zNTMgOC4zNzQwMiAzNDQuNjk2IDkuNzE3MTcgMzQ0LjY5NiAxMS4zNzRWMjcuODkzOUMzNDQuNjk2IDI5LjU1MDcgMzQ2LjA0IDMwLjg5MzkgMzQ3LjY5NiAzMC44OTM5SDM2MS40NTZDMzYzLjExMyAzMC44OTM5IDM2NC40NTYgMzIuMjM3IDM2NC40NTYgMzMuODkzOVY0MS4xNDA4QzM2NC40NTYgNDIuNzk3NyAzNjMuMTEzIDQ0LjE0MDggMzYxLjQ1NiA0NC4xNDA4SDM0Ny42OTZDMzQ2LjA0IDQ0LjE0MDggMzQ0LjY5NiA0NS40ODQgMzQ0LjY5NiA0Ny4xNDA4VjY5LjA4OTJDMzQ0LjY5NiA3MS4yOTcxIDM0NS42OSA3Mi40MDEgMzQ3LjY3NyA3Mi40MDFIMzU5LjQ2OUMzNjEuMTI2IDcyLjQwMSAzNjIuNDY5IDczLjc0NDEgMzYyLjQ2OSA3NS40MDFWODIuNjQ3OUMzNjIuNDY5IDg0LjMwNDggMzYxLjEyNiA4NS42NDc5IDM1OS40NjkgODUuNjQ3OUgzMzkuMjg3WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTI5My45OTkgMjUuMTUwMUMyOTEuMTI5IDI1LjE1MDEgMjg4LjY2NCAyNC4xNTY2IDI4Ni42MDMgMjIuMTY5NkMyODQuNTQzIDIwLjEwODkgMjgzLjUxMiAxNy42MDY3IDI4My41MTIgMTQuNjYzQzI4My41MTIgMTEuNzE5MiAyODQuNTQzIDkuMjUzNzggMjg2LjYwMyA3LjI2Njc0QzI4OC42NjQgNS4yMDYxIDI5MS4xMjkgNC4xNzU3OCAyOTMuOTk5IDQuMTc1NzhDMjk2Ljg3IDQuMTc1NzggMjk5LjMzNSA1LjIwNjEgMzAxLjM5NiA3LjI2Njc0QzMwMy40NTYgOS4yNTM3OCAzMDQuNDg3IDExLjcxOTIgMzA0LjQ4NyAxNC42NjNDMzA0LjQ4NyAxNy42MDY3IDMwMy40NTYgMjAuMTA4OSAzMDEuMzk2IDIyLjE2OTZDMjk5LjMzNSAyNC4xNTY2IDI5Ni44NyAyNS4xNTAxIDI5My45OTkgMjUuMTUwMVpNMjcxLjYwOSA4NS42NDQ2QzI2OS45NTMgODUuNjQ0NiAyNjguNjA5IDg0LjMwMTQgMjY4LjYwOSA4Mi42NDQ2Vjc1LjM5NzZDMjY4LjYwOSA3My43NDA4IDI2OS45NTMgNzIuMzk3NiAyNzEuNjA5IDcyLjM5NzZIMjg0LjE1NUMyODUuODEyIDcyLjM5NzYgMjg3LjE1NSA3MS4wNTQ1IDI4Ny4xNTUgNjkuMzk3NlY0Ny4xMzc0QzI4Ny4xNTUgNDUuNDgwNiAyODUuODEyIDQ0LjEzNzQgMjg0LjE1NSA0NC4xMzc0SDI3Mi45MzRDMjcxLjI3NyA0NC4xMzc0IDI2OS45MzQgNDIuNzk0MyAyNjkuOTM0IDQxLjEzNzRWMzMuODkwNUMyNjkuOTM0IDMyLjIzMzYgMjcxLjI3NyAzMC44OTA1IDI3Mi45MzQgMzAuODkwNUgyOTguMDY0QzI5OS43MjEgMzAuODkwNSAzMDEuMDY0IDMyLjIzMzYgMzAxLjA2NCAzMy44OTA1VjY5LjM5NzZDMzAxLjA2NCA3MS4wNTQ1IDMwMi40MDggNzIuMzk3NiAzMDQuMDY0IDcyLjM5NzZIMzEzLjk2MUMzMTUuNjE4IDcyLjM5NzYgMzE2Ljk2MSA3My43NDA4IDMxNi45NjEgNzUuMzk3NlY4Mi42NDQ2QzMxNi45NjEgODQuMzAxNCAzMTUuNjE4IDg1LjY0NDYgMzEzLjk2MSA4NS42NDQ2SDI3MS42MDlaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMjAxLjcyMyA4NS42NDY3QzIwMC4xNDQgODUuNjQ2NyAxOTguODM1IDg0LjQyMTkgMTk4LjczIDgyLjg0NThMMTk1LjQ4NiAzNC4wOTE3QzE5NS4zNzEgMzIuMzYwMyAxOTYuNzQ0IDMwLjg5MjYgMTk4LjQ4IDMwLjg5MjZIMjA1LjI0OUMyMDYuODM4IDMwLjg5MjYgMjA4LjE1MSAzMi4xMzEzIDIwOC4yNDQgMzMuNzE3M0wyMTAuNTA3IDcyLjM5OTdWNzIuODk4OUMyMTAuNTA3IDczLjYzMDUgMjExLjEwMSA3NC4yMjM2IDIxMS44MzIgNzQuMjIzNkMyMTIuNTY0IDc0LjIyMzYgMjEzLjE1NyA3My42MzA1IDIxMy4xNTcgNzIuODk4OVY3Mi4zOTk3TDIxNS43MyAzMy42OTM1QzIxNS44MzUgMzIuMTE3NCAyMTcuMTQ0IDMwLjg5MjYgMjE4LjcyNCAzMC44OTI2SDIzNi4wNzFDMjM3LjY1IDMwLjg5MjYgMjM4Ljk1OSAzMi4xMTc0IDIzOS4wNjQgMzMuNjkzNkwyNDEuNjM4IDcyLjM5OTdWNzIuODk4OUMyNDEuNjM4IDczLjYzMDUgMjQyLjIzMSA3NC4yMjM2IDI0Mi45NjIgNzQuMjIzNkMyNDMuNjk0IDc0LjIyMzYgMjQ0LjI4NyA3My42MzA1IDI0NC4yODcgNzIuODk4OVY3Mi4zOTk3TDI0Ni41NTEgMzMuNzE3M0MyNDYuNjQzIDMyLjEzMTMgMjQ3Ljk1NyAzMC44OTI2IDI0OS41NDUgMzAuODkyNkgyNTYuMzE1QzI1OC4wNSAzMC44OTI2IDI1OS40MjQgMzIuMzYwMyAyNTkuMzA4IDM0LjA5MTdMMjU2LjA2NSA4Mi44NDU4QzI1NS45NiA4NC40MjE5IDI1NC42NTEgODUuNjQ2NyAyNTMuMDcxIDg1LjY0NjdIMjM0LjU5OEMyMzMuMDI3IDg1LjY0NjcgMjMxLjcyMyA4NC40MzU1IDIzMS42MDYgODIuODY5NUwyMjguNzIyIDQ0LjEzOTVWMzguODQwOEMyMjguNzIyIDM4LjEwOTEgMjI4LjEyOSAzNy41MTYxIDIyNy4zOTcgMzcuNTE2MUMyMjYuNjY2IDM3LjUxNjEgMjI2LjA3MyAzOC4xMDkxIDIyNi4wNzMgMzguODQwOFY0NC4xMzk1TDIyMy4xODggODIuODY5NUMyMjMuMDcyIDg0LjQzNTUgMjIxLjc2NyA4NS42NDY3IDIyMC4xOTcgODUuNjQ2N0gyMDEuNzIzWiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTE2Ni44NDYgODcuMTg4OEMxNjEuMTc5IDg3LjE4ODggMTU2LjU4IDg2LjI2ODkgMTUzLjA0NyA4NC40MjlDMTQ5LjU4OCA4Mi41ODkyIDE0Ni45MzkgODAuMzQ0NSAxNDUuMDk5IDc3LjY5NTFDMTQzLjkzMSA3NS45NDQgMTQzLjAzNyA3NC4yMjUxIDE0Mi40MTYgNzIuNTM4MkMxNDEuODkgNzEuMTA2OCAxNDIuNzcyIDY5LjYwOTEgMTQ0LjIyMSA2OS4xMzQzTDE1MS40NDMgNjYuNzY4NkMxNTMuMDg5IDY2LjIyOTMgMTU0LjgyNiA2Ny4yMjE2IDE1NS42ODQgNjguNzI2N0MxNTYuMzM1IDY5Ljg2OTIgMTU3LjE4NiA3MC45NDUzIDE1OC4yMzUgNzEuOTU0OEMxNjAuMTQ5IDczLjcyMTEgMTYzLjAxOSA3NC42MDQyIDE2Ni44NDYgNzQuNjA0MkMxNzAuMzA1IDc0LjYwNDIgMTcyLjY2IDc0LjA4OSAxNzMuOTExIDczLjA1ODdDMTc1LjIzNiA3MS45NTQ4IDE3NS44OTggNzAuNzc3MyAxNzUuODk4IDY5LjUyNjJDMTc1Ljg5OCA2OC4wNTQzIDE3NS4xMjUgNjYuNzY2NCAxNzMuNTggNjUuNjYyNUMxNzIuMDM0IDY0LjU1ODYgMTY4Ljk0MyA2My44MjI2IDE2NC4zMDcgNjMuNDU0N0MxNTguMTk5IDYyLjkzOTUgMTUzLjMwNSA2MS4zMjA0IDE0OS42MjUgNTguNTk3NEMxNDUuOTQ1IDU1Ljg3NDUgMTQ0LjEwNSA1MS45MzcyIDE0NC4xMDUgNDYuNzg1NlY0Ni4xMjMyQzE0NC4xMDUgNDIuNTE3MSAxNDUuMDk5IDM5LjQ2MyAxNDcuMDg2IDM2Ljk2MDhDMTQ5LjA3MyAzNC40NTg2IDE1MS42NDkgMzIuNTgxOSAxNTQuODEzIDMxLjMzMDhDMTU3Ljk3OCAzMC4wMDYxIDE2MS4zMjYgMjkuMzQzOCAxNjQuODU5IDI5LjM0MzhDMTY5LjQ5NSAyOS4zNDM4IDE3My4zMjIgMzAuMDc5NyAxNzYuMzQgMzEuNTUxNkMxNzkuMzU3IDMyLjk0OTkgMTgxLjcxMiAzNC43MTYxIDE4My40MDUgMzYuODUwNEMxODQuNDUzIDM4LjExNzEgMTg1LjMyIDM5LjM4MzkgMTg2LjAwNSA0MC42NTA3QzE4Ni43NjUgNDIuMDU1MSAxODUuOTk2IDQzLjcyMTggMTg0LjUxNiA0NC4zMTkzTDE3Ny41MzMgNDcuMTM2OUMxNzUuOTI5IDQ3Ljc4NDEgMTc0LjE1OCA0Ni44ODUzIDE3My4wOTggNDUuNTE4NkMxNzIuNTUyIDQ0LjgxNTQgMTcxLjkwMyA0NC4yMDc0IDE3MS4xNTEgNDMuNjk0NkMxNjkuNTMyIDQyLjUxNzEgMTY3LjQzNSA0MS45Mjg0IDE2NC44NTkgNDEuOTI4NEMxNjIuNTc4IDQxLjkyODQgMTYwLjgxMSA0Mi4zNjk5IDE1OS41NiA0My4yNTMxQzE1OC4zODMgNDQuMDYyNiAxNTcuNzk0IDQ1LjA5MjkgMTU3Ljc5NCA0Ni4zNDRDMTU3Ljc5NCA0OC4xMTAzIDE1OC43MTQgNDkuMzYxNCAxNjAuNTU0IDUwLjA5NzNDMTYyLjM5NCA1MC44MzMzIDE2NS43NDIgNTEuNDk1NiAxNzAuNTk5IDUyLjA4NDRDMTc2LjE5MiA1Mi42NzMxIDE4MC43NTUgNTQuMzY1OCAxODQuMjg4IDU3LjE2MjRDMTg3LjgyIDU5Ljg4NTMgMTg5LjU4NyA2My43MTIyIDE4OS41ODcgNjguNjQzMVY2OS4zMDU0QzE4OS41ODcgNzQuNjc3OCAxODcuNiA3OS4wMTk4IDE4My42MjUgODIuMzMxNkMxNzkuNjUxIDg1LjU2OTcgMTc0LjA1OCA4Ny4xODg4IDE2Ni44NDYgODcuMTg4OFoiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPgo=" alt="Agent Switch"></a><span>Built for the <a href="https://www.wemakedevs.org/hackathons/switch" target="_blank" rel="noopener">Flip the Switch hackathon</a> by <a href="https://www.wemakedevs.org" target="_blank" rel="noopener">WeMakeDevs</a> and <a href="https://www.linkedin.com/company/devtools-academy" target="_blank" rel="noopener">DevTools Academy</a>, powered by Switch.</span></div>
+    <p class="fine" data-bind="footer.fine"></p>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   STORY CONFIG (v2). Edit this object to change the post.
+   ===================================================================== */
+const C = {
+  links: {
+    hackathon:       "https://www.wemakedevs.org/hackathons/switch",
+    wemakedevs:      "https://www.wemakedevs.org",
+    devtoolsAcademy: "https://www.linkedin.com/company/devtools-academy",
+    switchSite:      "https://www.switchagents.ai/",
+    buildGuide:      "./build-your-own.html",
+    switchOverview:  "https://docs.switchagents.ai/switch-rooms/index",
+    gettingStarted:  "https://docs.switchagents.ai/switch-rooms/getting-started",
+    building:        "https://docs.switchagents.ai/switch-rooms/building/index",
+    lifeOfMessage:   "https://docs.switchagents.ai/switch-rooms/internals/life-of-a-message",
+    agentEvents:     "https://docs.switchagents.ai/switch-rooms/internals/agent-events",
+    agentConnection: "https://docs.switchagents.ai/switch-rooms/internals/agent-connection",
+    agentProtocol:   "https://docs.switchagents.ai/switch-rooms/internals/agent-protocol",
+    addAgent:        "https://docs.switchagents.ai/switch-rooms/getting-started/add-a-second-agent",
+    discordSetup:    "https://docs.switchagents.ai/switch-rooms/deploy/messaging-apps/discord",
+    slackSetup:      "https://docs.switchagents.ai/switch-rooms/deploy/messaging-apps/slack",
+    switchRepo:      "https://github.com/sandbox-quantum/switch",
+    slackPermalink:  "https://docs.slack.dev/reference/methods/chat.getPermalink/",
+    // TODO: confirm public visibility and intended destinations
+    founderloopRepo: "https://github.com/sohamsshah/founderloop",
+    authorGithub:    "https://github.com/sohamsshah"
+  },
+
+  // status: live | fixture | unverified | idea
+  claims: {
+    bridge:     { status:"unverified", label:"Not yet verified live" },
+    wsAuth:     { status:"live",       label:"Observed live" },
+    citation:   { status:"fixture",    label:"Fixture-tested" },
+    classify:   { status:"fixture",    label:"Fixture-tested" },
+    docContext: { status:"live",       label:"Public Doc export read live" },
+    card:       { status:"unverified", label:"Not yet verified live" },
+    verdict:    { status:"unverified", label:"Not yet verified live" },
+    sheet:      { status:"unverified", label:"Not yet verified live" }
+  },
+
+  post: {
+    tag: "Personal productivity for founders",
+    title: "Every product signal in your inbox, one decision away",
+    dek: "FounderLoop is a personal productivity agent built for founders and leaders. It listens where your users talk, keeps their exact words, and asks you to decide. Built on Switch.",
+    author: "Soham Shah and Samyak Shah",
+    meta: "7 November 2026, 9 minute read",
+    heroSay: "A signal shows up somewhere in your chats. You decide what to do about it. The right person hears your verdict.<span>FounderLoop closes that loop for you, and every decision points back to the words that started it.</span>"
+  },
+
+  intro: [
+    "<p class=\"lead\">We’re founders, and we kept losing the best signals in our own chats. Not because they were quiet. Because they showed up in five different places, on a Tuesday, while we were in a meeting.</p>",
+    "<p>A feature request in the community Discord. A pricing question in a shared Slack channel. A “you promised this by Friday” in a Telegram group. Each one was a decision waiting for us, and most arrived with the original words long gone.</p>",
+    "<p>So we built <strong>FounderLoop</strong>, a personal productivity tool for founders, CXOs and other leaders. It quietly listens to the channels you’re already in. When it spots something worth deciding, it keeps the exact quote, adds the context you’d look up anyway, and puts one card in front of you in Slack. You accept, reject or comment, and one verdict goes to the right person.</p>",
+    "<p>This isn’t a team tool or a general business dashboard. It’s for the person who makes hundreds of decisions a day and can’t be in every channel. We built it on <strong>Switch</strong> for the <a href=\"{hackathon}\">Flip the Switch hackathon</a>, in the personal productivity track. This post walks through the problem, why tagging doesn’t solve it, where Switch fits, and then a walkthrough of FounderLoop at work.</p>"
+  ],
+
+  sw: {
+    h: "Meet Switch, the layer underneath",
+    p: "Before the problem, a quick word on the infrastructure, because it shapes everything that follows.",
+    lede: "Switch is open source software from the Switch team that puts AI agents into the chat apps people already use. Every channel becomes a room, and any agent that speaks its protocol can join like a teammate.",
+    facts: [
+      { icon:"rooms", t:"Every channel becomes a room", d:"Slack, Microsoft Teams, Discord, Telegram and Mattermost channels map to Switch rooms, with shared history." },
+      { icon:"agents", t:"Any agent, any model", d:"Claude Code, Codex, OpenCode or a custom agent you wrote. If it speaks the agent protocol, it can join." },
+      { icon:"house", t:"Self-hosted, your context", d:"Run it on your own machine or servers. Change agents, models or vendors without losing a room’s context." }
+    ],
+    not: "<b>What it is not:</b> a chat app or an agent provider. Switch ships no agents and no models. You bring both, and Switch connects them. <a href=\"{switchOverview}\">Read the overview</a>."
+  },
+
+  problem: {
+    prose: [
+      "<h2>Your signals are scattered across every chat</h2>",
+      "<p>Founders don’t get to choose where people talk to them. The community lives in Discord. Your biggest design partner wanted a Slack Connect channel. The beta group set up Telegram. A partner team runs Mattermost.</p>",
+      "<p>Here’s one founder’s week across those four apps. Switch between the three views: everything that was said, what actually reached you, and what FounderLoop would put in front of you.</p>"
+    ],
+    weekCap: "An illustrative week. Today FounderLoop listens to Discord and Slack sources. Dashed items would arrive through Switch’s Telegram and Mattermost bridges, which FounderLoop hasn’t been tested with yet.",
+    apps: [
+      { id:"discord", name:"Discord", sub:"#community", color:"#5865F2" },
+      { id:"slack", name:"Slack Connect", sub:"#acme-shared", color:"#4A154B" },
+      { id:"telegram", name:"Telegram", sub:"Beta users", color:"#517DA2", later:true },
+      { id:"mattermost", name:"Mattermost", sub:"#partner-ops", color:"#1E325C", later:true }
+    ],
+    days: ["Mon","Tue","Wed","Thu","Fri"],
+    msgs: [
+      { app:"discord", d:0, who:"kit", t:"anyone tried the new weekly reports?" },
+      { app:"discord", d:1, who:"maya", t:"We can’t roll this out until we can export reports to CSV.", r:"product", para:"someone wants exports?" },
+      { app:"discord", d:2, who:"jo", t:"lol same here" },
+      { app:"discord", d:3, who:"rohan", t:"Will there be an API for reports?", r:"product" },
+      { app:"discord", d:4, who:"kit", t:"great meetup yesterday!" },
+      { app:"slack", d:0, who:"Priya", t:"Thanks for the onboarding call." },
+      { app:"slack", d:2, who:"Priya", t:"What would an annual plan for 40 seats cost?", r:"revenue" },
+      { app:"slack", d:4, who:"Dev", t:"Our budget closes next month, FYI.", r:"revenue" },
+      { app:"telegram", d:1, who:"Sam", t:"You said SSO would ship by Friday. Still broken.", r:"commitment" },
+      { app:"telegram", d:3, who:"Lee", t:"+1" },
+      { app:"mattermost", d:0, who:"Ana", t:"Webhook retries are failing again." , r:"commitment", kind:"issue" },
+      { app:"mattermost", d:3, who:"Bo", t:"Is the retry fix on your roadmap?", r:"product" },
+      { app:"mattermost", d:4, who:"Bo", t:"No rush, we can wait a sprint." }
+    ],
+    lostNote: "One signal reached you, paraphrased, two days late. The rest scrolled away under small talk.",
+    rawNote: "Thirteen messages. Seven of them deserve a decision. Can you spot them?",
+    loopNote: "Every signal becomes a card with the user’s exact words and a link back to the message. Chatter stays where it is.",
+    painsLead: "<h3>Four things go wrong for a founder every week</h3>",
+    pains: [
+      { icon:"scatter", t:"Signals scatter", d:"Four apps, four search bars. Important asks scroll away under small talk." },
+      { icon:"quote", t:"Words get paraphrased", d:"By the planning meeting, “we can’t roll out without CSV export” has become “someone mentioned exports”." },
+      { icon:"trail", t:"Decisions leave no trail", d:"You say yes in a DM. The team never hears, and nobody can trace why later." },
+      { icon:"plug", t:"Every app is another integration", d:"Each chat platform has its own API, auth, events and limits. One bot per app doesn’t scale." }
+    ]
+  },
+
+  tag: {
+    prose: [
+      "<h2>“Can’t people just tag a bot, me, or a group?”</h2>",
+      "<p>It’s the first question everyone asks, and it’s a fair one. In Discord and Slack you can @mention a bot, tag the founder directly, or tag a group such as <code>@founders</code> or <code>@leads</code>. Why build anything else?</p>",
+      "<p>Because tagging only works once someone has already noticed the signal and knows who to tell. Pick a way of tagging below and compare it with FounderLoop. Same users, same week.</p>"
+    ],
+    cap: "Left: one way of tagging, and what it does and doesn’t catch. Right: FounderLoop, which reads tagged and untagged messages alike and never replies in the user’s channel.",
+    maya: { who:"maya_k", color:"#E67E22", time:"10:42", html:"We can’t roll this out until we can export reports to CSV." },
+    rohan:{ who:"rohan", color:"#8E44AD", time:"10:47", q:"can we export reports to CSV?" },
+    opts: [
+      { label:"Tag the bot", handle:"@HelperBot", chip:"catches some",
+        notes: { maya:"No tag, so the bot never sees it.", rohan:null },
+        reply: { html:"Got it! I’ve noted this.", note:"A public reply sets an expectation nobody owns. The note stays inside the bot." },
+        gives: ["Whoever tags it gets an instant, friendly acknowledgement.","No new habit for the team: it’s one more mention."],
+        gaps: ["It only helps when the user tags it. Maya didn’t.","It replies in public, in front of the user.","It keeps its own summary, not a link to the exact words.","One bot per chat app, each with its own memory."] },
+      { label:"Tag the founder", handle:"@founder", chip:"catches some",
+        notes: { maya:"No tag, so nobody is pinged.", rohan:"You get a ping, mid-call. No reply, no owner, no record of what you decided." },
+        gives: ["A real person is alerted straight away.","Natural for users who already know your name."],
+        gaps: ["The user has to know who to tag, and remember to.","A ping is a notification, not a decision. It lives in the thread, not in a queue.","If you’re travelling or in calls, it waits, and nobody can tell whether you saw it.","Nothing routes it to Product, Sales or Support, or records what you decided."] },
+      { label:"Tag a group", handle:"@founders", chip:"catches some",
+        notes: { maya:"No tag, so nobody is pinged.", rohan:"Three people are pinged. Each assumes another will answer." },
+        gives: ["It doesn’t depend on one person being online.","A familiar pattern: a Slack user group or a Discord role."],
+        gaps: ["Everyone is pinged, so everyone assumes someone else has it.","Used often, a group tag turns into noise and people mute it.","Users in a shared channel often can’t see or use your internal groups.","Still no exact quote, no context and no verdict trail."] }
+    ],
+    benLead: "<h3>Where FounderLoop earns its place, even when people can tag</h3><p>Tagging is a way to get attention. FounderLoop is a way to get a decision made and remembered. Six differences matter in practice.</p>",
+    bens: [
+      { t:"It catches what nobody tagged", d:"The most telling messages are said to peers, not to your bot or your team: “we can’t roll this out without CSV.” FounderLoop needs nothing from the user, not even a handle." },
+      { t:"A tag is an alert; a card is a decision", d:"A mention pings people and sinks into the thread. A card asks for Accept, Reject or Comment, and closes once the verdict is delivered." },
+      { t:"One owner, not a pile-on", d:"A group tag pings everyone, so everyone assumes someone else has it. Only the founder’s Switch sender ID can decide, and repeating a command can’t create a second verdict." },
+      { t:"Exact words, exact link", d:"A tagged message gets forwarded and paraphrased. Every card carries the user’s quote word for word, with a link to the message. No link, no card." },
+      { t:"Context in, verdict out", d:"The card already shows the roadmap line or the lead record you’d have looked up. Then one verdict reaches Product, Sales or Support, so there’s a trail later." },
+      { t:"Quiet where it should be", d:"It never replies in the user’s channel and stays silent on chatter, so your private room doesn’t become a firehose the way a busy group tag does." }
+    ],
+    rows: [
+      ["What starts it", "Someone has to know the handle and remember to tag it.", "Nothing. It listens to the room."],
+      ["What happens in the channel", "A public reply or a ping. Others see an expectation nobody owns.", "Nothing. It never replies in the user’s channel."],
+      ["What you receive", "A ping in the thread, with whatever the sender wrote.", "A card with the exact quote, a source link and context."],
+      ["Who owns it", "Whoever notices first. With a group tag, often nobody.", "The founder decides. Only their sender ID counts."],
+      ["What happens next", "Depends on someone forwarding it, usually paraphrased.", "One verdict reaches Product, Sales or Support, and the card closes."],
+      ["Across apps", "A handle, a group and sometimes a bot for each app.", "One agent, one connection, every app Switch bridges."]
+    ],
+    pull: "Tagging works when the user knows who to tag. FounderLoop works when they don’t.",
+    after: "Keep tagging: it’s still the fastest way to get one person’s attention. FounderLoop sits beside it. An agent in a Switch room receives every message, with a flag saying whether it was addressed. FounderLoop reads both kinds, so a tag stops being the only way a signal reaches you, and a tagged message becomes a card like any other."
+  },
+
+  toolkit: {
+    h: "The Switch pieces FounderLoop uses",
+    p: "Six of these are in use today. Two are waiting for the next version. Open any tile to see how FounderLoop uses it.",
+    tiles: [
+      { icon:"bridge", t:"Collaboration bridge", w:"Chat app in, rooms out.", use:true, more:"Maps the user Discord channel and four private Slack channels into Switch rooms.", doc:"discordSetup" },
+      { icon:"rooms", t:"Rooms", w:"A shared log for people and agents.", use:true, more:"Source rooms, a private founder room, and one room per team verdict.", doc:"switchOverview" },
+      { icon:"plug", t:"Agent protocol", w:"Events in, HTTP posts out.", use:true, more:"FounderLoop posts with <code>POST /agents/{id}/message</code> and <code>{room_id, content}</code>.", doc:"agentProtocol" },
+      { icon:"socket", t:"Agent connection", w:"One long-lived authenticated socket.", use:true, more:"WebSocket with <code>scope=all</code>, <code>filter=all</code>, cursor resume and ping/pong.", doc:"agentConnection" },
+      { icon:"envelope", t:"Message events", w:"Sender, text, time and an addressed flag.", use:true, more:"FounderLoop reads unaddressed messages on purpose and never replies in source rooms.", doc:"agentEvents" },
+      { icon:"id", t:"Sender identity", w:"Switch says who sent each message.", use:true, more:"Only the founder’s Switch sender ID can accept, reject or comment on a card.", doc:"agentEvents" },
+      { icon:"lock", t:"Who can talk to an agent", w:"Per-agent rules for who can instruct it.", use:false, more:"Needed once FounderLoop splits into several agents that hand work to each other.", doc:"addAgent" },
+      { icon:"template", t:"Templates and room instructions", w:"Create agents and rooms in one step.", use:false, more:"The natural way to package FounderLoop so another founder can set it up in minutes.", doc:"building" }
+    ]
+  },
+
+  flip: {
+    h: "What if you took Switch away?",
+    p: "The honest test for any infrastructure is to remove it. Below, the same setup is drawn twice: without Switch on the left, with Switch on the right. Add chat apps and agents, and watch the two sides pull apart.",
+    platforms: ["Discord","Slack","Telegram","Mattermost","Teams"],
+    agents: ["FounderLoop","Product agent","Revenue agent","Support agent","Coding agent","Research agent"],
+    buildOn: ["One WebSocket connection to Switch","One HTTP endpoint to post messages","Room IDs in a config file","The founder’s Switch sender ID"],
+    buildOff: [
+      { t:"A client per chat app, with its own auth and tokens", per:true },
+      { t:"Event intake: gateway intents, webhooks, socket mode", per:true },
+      { t:"Translating each app’s message format into one shape", per:true },
+      { t:"A delivery layer with its own rate limits", per:true },
+      { t:"Proving who the founder is on each app", per:true },
+      { t:"Reconnects and replay cursors", per:true },
+      { t:"Your own history and context store" },
+      { t:"Rules for which agent can talk to which person" }
+    ]
+  },
+
+  walk: {
+    h: "The walkthrough",
+    p: "The same stories as one animated card. Scroll, press Next, or hit Autoplay to follow a message from the user’s chat app to a decision. Turn Switch off to see where the story stops."
+  },
+
+  stories_old: {
+    h: "",
+    p: "Six short stories. Each follows one kind of user message to a decision, and each is shown twice, side by side: on the left as it would run without Switch, on the right with Switch connected. The characters are a storytelling device: there’s one FounderLoop agent, and nothing here contacts a real service."
+  },
+
+  // Canonical messages
+  maya: { name:"maya_k", color:"#E67E22", text:"Love the weekly reports. But we can’t roll this out to the whole team until we can export reports to CSV. Our finance lead asks every Friday." },
+  priya:{ name:"Priya (Acme)", color:"#2F6FEB", text:"We’re 40 people. What would an annual plan cost? We want to start before our budget closes next month." },
+  sam:  { name:"sam_r", color:"#C0392B", text:"Your team said the SSO fix would ship by Friday. It’s still broken for us." },
+  kit:  { name:"kit", color:"#16A085", text:"Great meetup yesterday, thanks everyone!" },
+
+  routes: {
+    product:    { label:"Product", shape:"◆", room:"#founder-loop-product", team:"Product", words:["export","csv","feature","would love","wish","integration","api","dashboard","missing","roadmap","support for","request","dark mode","webhook"], ctx:{ kind:"doc", title:"Product Intelligence", line:"Exports: not planned this quarter." } },
+    revenue:    { label:"Revenue", shape:"●", room:"#founder-loop-sales", team:"Sales", words:["pricing","price","cost","quote","annual","seats","plan","buy","purchase","invoice","budget","trial","contract","upgrade","enterprise"], ctx:{ kind:"sheet", title:"Leads Sheet", line:"No lead with this user ID. Possibly new." } },
+    commitment: { label:"Commitment", shape:"▲", room:"#founder-loop-support", team:"Support", promise:["promised","you said","said the","committed","guarantee","told us","was supposed to","by friday","by monday","eta"], words:["broken","not working","still","outage","error","bug","down","fails","crash"], ctx:null }
+  },
+  samples: [
+    "Love the weekly reports. But we can’t roll this out until we can export reports to CSV.",
+    "What would an annual plan cost for 40 seats? Budget closes next month.",
+    "Your team said the SSO fix would ship by Friday. It’s still broken.",
+    "Great meetup yesterday, thanks everyone!"
+  ],
+
+  next: {
+    h: "What’s next for FounderLoop",
+    p: "Today FounderLoop is one agent, Discord and Slack in, Slack out. Here’s where it goes next. None of these is built yet. With Switch, most are configuration. Without it, each is a new integration project.",
+    scenarios: [
+      { t:"Hear users wherever they talk", s:"Enterprise users live in Teams. The beta community moved to Telegram.", w:"Connect the bridges, map channels to rooms. FounderLoop’s code doesn’t change.", o:"Write and maintain a new platform client for each app." },
+      { t:"Decide from your phone", s:"You’re travelling and want to approve cards from Telegram.", w:"Bridge the founder room to Telegram too. Same card, same sender check.", o:"Rebuild the approval flow and the founder’s identity on a second platform." },
+      { t:"Split one agent into a team", s:"Product goes to a Claude Code agent that can read the repo. Revenue goes to an agent with CRM tools.", w:"Each agent joins the rooms it needs. Rules decide who can hand work to whom.", o:"Build a message bus, identity, routing and access control from scratch." },
+      { t:"From accepted to in progress", s:"Accepting a Product card opens a work room where a coding agent drafts the fix and an engineer reviews it.", w:"A follow-on room with the user quote already in its history.", o:"Copy the quote into a ticket and paste context between tools by hand." },
+      { t:"Swap the model, keep the memory", s:"A better model comes out and you want to switch without losing months of decisions.", w:"History and instructions live in rooms on your own server.", o:"Migrate a homemade conversation store and hope the new agent reads it." },
+      { t:"Give your co-founder a vote", s:"A second founder should decide on Revenue cards only.", w:"Add them to the founder room. Sender identity and agent rules carry the policy.", o:"Build per-platform user mapping, and make sure a user can’t fake an ACCEPT." }
+    ]
+  },
+
+  status: {
+    h: "Where FounderLoop is today",
+    p: "We’d rather be precise than impressive. The stories above mirror FounderLoop’s fixture demo. Here’s what has and hasn’t been proven against live services, as of 7 November 2026.",
+    rows: [
+      ["All three routes, founder decisions and CLOSED, in the fixture demo", "fixture"],
+      ["30 automated tests passing", "fixture"],
+      ["Switch agent WebSocket authentication and ping/pong", "live"],
+      ["Named Google Doc read through its public export", "live"],
+      ["Discord message delivered through a Switch room", "unverified"],
+      ["Founder opens the exact source link", "unverified"],
+      ["Founder card and verdict in live Slack", "unverified"],
+      ["Leads Sheet read and write", "unverified"]
+    ]
+  },
+
+  footer: {
+    h: "Stop losing the signals that matter.",
+    p: "FounderLoop is open source and runs on your own Switch server. Clone it, run the demo in two minutes, and point it at your own channels.",
+    ctas: [
+      { label:"Get FounderLoop on GitHub", href:"founderloopRepo", pri:true },
+      { label:"Build your own", href:"buildGuide" },
+      { label:"Switch documentation", href:"gettingStarted" },
+      { label:"Switch on GitHub", href:"switchRepo" },
+      { label:"Flip the Switch hackathon", href:"hackathon" }
+    ],
+    fine: "The walkthrough in this post is simulated; it never contacts Discord, Switch, Slack or Google. Chat app panels are look-alikes for illustration. The Switch name and wordmark belong to the Switch project. Written by <a href=\"{authorGithub}\">Soham Shah</a> and Samyak Shah."
+  }
+};
+
+/* =====================================================================
+   RENDERING
+   ===================================================================== */
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fill = s => String(s).replace(/\{(\w+)\}/g,(m,k)=>C.links[k]||m);
+const get = p => p.split('.').reduce((o,k)=>o&&o[k], C);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const chip = k => '';
+const dlink = (k,l) => k?`<a href="${C.links[k]}" target="_blank" rel="noopener">${esc(l||'Docs')}</a>`:'';
+
+document.querySelectorAll('[data-bind]').forEach(el=>el.innerHTML = fill(get(el.dataset.bind)||''));
+
+// ---------- icons ----------
+const ICON = {
+  rooms:`<svg viewBox="0 0 56 56"><rect x="6" y="10" width="30" height="22" rx="5" fill="none" stroke="#A893FF" stroke-width="3"/><rect x="20" y="24" width="30" height="22" rx="5" fill="#7B5CFF"/><circle cx="29" cy="35" r="2.5" fill="#fff"/><circle cx="36" cy="35" r="2.5" fill="#fff"/><circle cx="43" cy="35" r="2.5" fill="#fff"/></svg>`,
+  agents:`<svg viewBox="0 0 56 56"><rect x="8" y="16" width="18" height="16" rx="5" fill="#7B5CFF"/><rect x="30" y="16" width="18" height="16" rx="5" fill="none" stroke="#A893FF" stroke-width="3"/><circle cx="14" cy="24" r="2" fill="#fff"/><circle cx="20" cy="24" r="2" fill="#fff"/><path d="M8 42h40" stroke="#A893FF" stroke-width="3" stroke-linecap="round"/><path d="M17 32v10M39 32v10" stroke="#A893FF" stroke-width="3"/></svg>`,
+  house:`<svg viewBox="0 0 56 56"><path d="M10 26 28 10l18 16v20H10z" fill="none" stroke="#A893FF" stroke-width="3" stroke-linejoin="round"/><rect x="22" y="30" width="12" height="16" rx="2" fill="#7B5CFF"/></svg>`,
+  bridge:`<svg viewBox="0 0 46 46"><path d="M4 30 Q23 8 42 30" fill="none" stroke="var(--violet)" stroke-width="3"/><path d="M4 30h38M12 30v-6M23 30v-12M34 30v-6" stroke="var(--ink)" stroke-width="2.5"/></svg>`,
+  plug:`<svg viewBox="0 0 46 46"><path d="M16 6v10M30 6v10" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/><rect x="11" y="16" width="24" height="12" rx="4" fill="var(--violet)"/><path d="M23 28v12" stroke="var(--ink)" stroke-width="3"/></svg>`,
+  socket:`<svg viewBox="0 0 46 46"><path d="M6 23h12M28 23h12" stroke="var(--ink)" stroke-width="3"/><circle cx="23" cy="23" r="7" fill="var(--violet)"/><path d="M10 15 6 23l4 8M36 15l4 8-4 8" fill="none" stroke="var(--ink)" stroke-width="2.5"/></svg>`,
+  envelope:`<svg viewBox="0 0 46 46"><rect x="6" y="11" width="34" height="24" rx="4" fill="none" stroke="var(--ink)" stroke-width="3"/><path d="M6 13l17 13 17-13" fill="none" stroke="var(--violet)" stroke-width="3"/></svg>`,
+  id:`<svg viewBox="0 0 46 46"><rect x="5" y="10" width="36" height="26" rx="4" fill="none" stroke="var(--ink)" stroke-width="3"/><circle cx="16" cy="22" r="5" fill="var(--violet)"/><path d="M26 19h10M26 26h8" stroke="var(--ink)" stroke-width="2.5"/></svg>`,
+  lock:`<svg viewBox="0 0 46 46"><rect x="10" y="20" width="26" height="18" rx="4" fill="var(--ink-3)"/><path d="M15 20v-5a8 8 0 0 1 16 0v5" fill="none" stroke="var(--ink-3)" stroke-width="3"/></svg>`,
+  template:`<svg viewBox="0 0 46 46"><rect x="7" y="7" width="32" height="32" rx="5" fill="none" stroke="var(--ink-3)" stroke-width="3" stroke-dasharray="5 4"/><path d="M14 17h18M14 24h12M14 31h15" stroke="var(--ink-3)" stroke-width="2.5"/></svg>`,
+  scatter:`<svg viewBox="0 0 200 86"><g fill="var(--line)"><rect x="8" y="10" width="44" height="16" rx="8"/><rect x="70" y="52" width="52" height="16" rx="8"/><rect x="140" y="22" width="48" height="16" rx="8"/><rect x="30" y="58" width="30" height="14" rx="7"/></g><rect x="96" y="14" width="34" height="16" rx="8" fill="var(--teal)"/><rect x="150" y="60" width="40" height="16" rx="8" fill="var(--amber-fill)"/></svg>`,
+  quote:`<svg viewBox="0 0 200 86"><text x="10" y="40" font-family="Bricolage Grotesque,sans-serif" font-size="26" font-weight="800" fill="var(--ink)">“CSV or</text><text x="10" y="70" font-family="Bricolage Grotesque,sans-serif" font-size="26" font-weight="800" fill="var(--ink)">we can’t…”</text><path d="M120 50h18" stroke="var(--coral)" stroke-width="3"/><text x="144" y="56" font-size="15" fill="var(--ink-3)" font-style="italic">exports?</text></svg>`,
+  trail:`<svg viewBox="0 0 200 86"><circle cx="20" cy="43" r="10" fill="var(--violet)"/><path d="M34 43h40" stroke="var(--ink)" stroke-width="3"/><path d="M84 43h24" stroke="var(--ink)" stroke-width="3" stroke-dasharray="4 6" opacity=".4"/><text x="118" y="50" font-size="22" font-weight="700" fill="var(--coral)">?</text><rect x="140" y="30" width="48" height="26" rx="6" fill="none" stroke="var(--line)" stroke-width="3"/></svg>`,
+  plugBig:`<svg viewBox="0 0 200 86"><g stroke="var(--coral)" stroke-width="2" stroke-dasharray="4 4" fill="none"><path d="M40 20 C100 20 100 66 160 66"/><path d="M40 43 C100 43 100 20 160 20"/><path d="M40 66 C100 66 100 43 160 43"/><path d="M40 20 C100 20 100 43 160 43"/></g><g fill="var(--ink)"><rect x="18" y="12" width="22" height="16" rx="4"/><rect x="18" y="35" width="22" height="16" rx="4"/><rect x="18" y="58" width="22" height="16" rx="4"/></g><g fill="var(--line)"><rect x="160" y="12" width="22" height="16" rx="4"/><rect x="160" y="35" width="22" height="16" rx="4"/><rect x="160" y="58" width="22" height="16" rx="4"/></g></svg>`
+};
+
+// ---------- hero loop ----------
+(()=>{ const stops=["User says it","Evidence kept","Founder decides","Team is told"];
+  const P=[[220,50,'middle',-16],[390,220,'start',5],[220,390,'middle',30],[50,220,'end',5]];
+  $('#loopStops').innerHTML = stops.map((s,i)=>{const [x,y,a,dy]=P[i]; const dx = a==='start'?16:a==='end'?-16:0; return `<circle cx="${x}" cy="${y}" r="7" fill="var(--paper-2)" stroke="var(--ink)" stroke-width="2.5"/><text x="${x+dx}" y="${y+dy}" text-anchor="${a}" font-weight="600">${s}</text>`}).join('');
+  if (reduced) $('#loopToken').remove(); })();
+
+$('#intro').innerHTML = fill(C.intro.join(''));
+$('#facts').innerHTML = C.sw.facts.map(f=>`<div class="fact">${ICON[f.icon]}<h3>${esc(f.t)}</h3><p>${esc(f.d)}</p></div>`).join('');
+
+// ---------- week ----------
+const P = C.problem;
+$('#problemProse').innerHTML = P.prose.join('');
+$('#painsLead').innerHTML = P.painsLead;
+$('#pains').innerHTML = P.pains.map(p=>`<div class="pain">${ICON[p.icon==='plug'?'plugBig':p.icon]}<h3>${esc(p.t)}</h3><p>${esc(p.d)}</p></div>`).join('');
+function renderWeek(mode){
+  const g = $('#weekGrid');
+  let h = `<div class="corner"></div>` + P.days.map(d=>`<div class="dh">${d}</div>`).join('');
+  P.apps.forEach(a=>{
+    h += `<div class="ah"><i style="background:${a.color}"></i><span>${a.name}<br><small style="color:var(--ink-3);font-weight:500">${a.sub}</small></span></div>`;
+    P.days.forEach((d,di)=>{
+      const ms = P.msgs.filter(m=>m.app===a.id && m.d===di);
+      h += `<div class="cell">${ms.map(m=>{ const later = a.later && m.r; const para = m.para?` data-para="${esc(m.para)}"`:''; return `<div class="bub ${m.r?'sig':''} ${later?'later':''} ${m.para?'para':''}" ${m.r?`data-r="${m.r}"`:''}${para}><span class="k">${m.r?C.routes[m.r].shape+' ':''}${esc(m.who)}</span>${esc(m.t)}</div>`}).join('')}</div>`;
+    });
+  });
+  g.innerHTML = h;
+  $('#week').className = 'week mode-'+mode;
+  const out = $('#weekOut');
+  if (mode==='raw') out.innerHTML = `<b>${P.rawNote}</b> Signals are marked with their shape: ◆ Product, ● Revenue, ▲ Commitment.`;
+  if (mode==='lost') out.innerHTML = `<b>${P.lostNote}</b>`;
+  if (mode==='loop'){
+    const sigs = P.msgs.filter(m=>m.r);
+    out.innerHTML = `<b>${P.loopNote}</b><div class="cards">${sigs.map(m=>{ const app=P.apps.find(a=>a.id===m.app); const R=C.routes[m.r]; return `<div class="wc ${app.later?'later':''}" style="--rc:${m.r==='product'?'var(--teal)':m.r==='revenue'?'var(--amber-fill)':'var(--coral)'}"><b>${R.shape} ${R.label}</b> “${esc(m.t)}”<br><small style="color:var(--ink-3)">${esc(m.who)} in ${app.name}${app.later?', via a Switch bridge (next version)':''}</small></div>`}).join('')}</div>`;
+  }
+  document.querySelectorAll('#week .seg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode===mode));
+}
+document.querySelectorAll('#week .seg button').forEach(b=>b.addEventListener('click',()=>renderWeek(b.dataset.mode)));
+renderWeek('raw');
+
+// ---------- tag a bot, a person, or a group ----------
+const T = C.tag;
+$('#tagProse').innerHTML = T.prose.join('');
+$('#benLead').innerHTML = T.benLead;
+$('#bens').innerHTML = T.bens.map((b,i)=>`<div class="ben"><span class="bn" aria-hidden="true">${i+1}</span><h3>${esc(b.t)}</h3><p>${esc(b.d)}</p></div>`).join('');
+$('#vsTable').innerHTML = `<thead><tr><th></th><th>Tagging a bot, person or group</th><th>FounderLoop on Switch</th></tr></thead><tbody>${T.rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('')}</tbody>`;
+$('#tagSeg').innerHTML = T.opts.map((o,i)=>`<button type="button" data-k="${i}" aria-pressed="${i===0}">${esc(o.label)}</button>`).join('');
+const dm = (m,bot) => `<div class="dm"><span class="av" style="background:${m.color}">${esc(m.who[0].toUpperCase())}</span><div><b>${esc(m.who)}</b>${bot?'<span class="bot">APP</span>':''}<span class="t">${m.time}</span><br>${m.html}</div></div>`;
+const noteIn = (t,tone) => t?`<div class="note-in ${tone}">${esc(t)}</div>`:'';
+function renderTag(k){
+  const o = T.opts[k];
+  const tagged = { who:T.rohan.who, color:T.rohan.color, time:T.rohan.time, html:`<span class="mention">${esc(o.handle)}</span> ${esc(T.rohan.q)}` };
+  const left = dm(T.maya) + noteIn(o.notes.maya,'bad') + dm(tagged) + noteIn(o.notes.rohan,'bad')
+    + (o.reply ? dm({ who:"HelperBot", color:"#5865F2", time:"10:47", html:esc(o.reply.html) }, true) + noteIn(o.reply.note,'bad') : '');
+  const cardB = (id,q,extra) => `<div class="b"><b>◆ Product signal</b> ${id}<br>“${esc(q)}”<br><small>Source link${extra?' · '+esc(extra):''}</small><br><u>Accept</u> · Reject · Comment</div>`;
+  $('#vs').innerHTML = `
+<div class="vs-col"><h3>${esc(o.label)} <span class="chipx" style="color:var(--amber)">${esc(o.chip)}</span></h3>
+  <div class="mock-dc"><div class="h"># community</div><div class="b">${left}</div></div></div>
+<div class="vs-col"><h3>FounderLoop <span class="chipx" style="color:var(--teal)">catches both</span></h3>
+  <div class="mock-dc"><div class="h"># community</div><div class="b">${dm(T.maya)}${noteIn('No tag needed. No reply in the channel.','good')}${dm(tagged)}${noteIn('Tagged or not, it’s read the same way. No reply here either.','good')}</div></div>
+  <div class="mini-slack"><div class="h"># founder-loop-founder (private)</div>${cardB('FL-P1042','We can’t roll this out until we can export reports to CSV.','Product Intelligence: exports not planned this quarter')}${cardB('FL-P1043',T.rohan.q.charAt(0).toUpperCase()+T.rohan.q.slice(1))}</div></div>`;
+  $('#tagGaps').innerHTML = `<div class="y"><h4>What ${esc(o.label.toLowerCase())} gives you</h4><ul>${o.gives.map(g=>`<li><span>${esc(g)}</span></li>`).join('')}</ul></div><div class="n"><h4>What it still leaves you with</h4><ul>${o.gaps.map(g=>`<li><span>${esc(g)}</span></li>`).join('')}</ul></div>`;
+  document.querySelectorAll('#tagSeg button').forEach(b=>b.setAttribute('aria-pressed', +b.dataset.k===k));
+}
+$('#tagSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) renderTag(+b.dataset.k); });
+renderTag(0);
+
+// ---------- toolkit ----------
+$('#tiles').innerHTML = C.toolkit.tiles.map(t=>`<details class="tile"><summary>${ICON[t.icon]}<h3>${esc(t.t)}</h3><p class="w">${esc(t.w)}</p><span class="use ${t.use?'y':'n'}">${t.use?'Used today':'Next version'}</span></summary><div class="more">${t.more}<br>${dlink(t.doc,'Read the docs')}</div></details>`).join('');
+
+// ---------- flip: switch off and on, side by side ----------
+const S = { si:0, custom:null, hood:false };
+const F = C.flip;
+function meshInner(on, nP, nA){
+  const W=520, H=400, hy=H/2, hx=260, lx=70, rx=450;
+  const ys = n=>Array.from({length:n},(_,i)=>n===1?hy:46+i*(H-92)/(n-1));
+  const py=ys(nP), ay=ys(nA); let L='';
+  if(on){
+    py.forEach(y=>L+=`<path d="M${lx+60} ${y} C ${lx+100} ${y}, ${lx+100} ${hy}, ${hx-50} ${hy}" stroke="#A893FF" stroke-width="2.5" fill="none"/>`);
+    ay.forEach(y=>L+=`<path d="M${hx+50} ${hy} C ${hx+90} ${hy}, ${hx+90} ${y}, ${rx-60} ${y}" stroke="#A893FF" stroke-width="2.5" fill="none"/>`);
+  } else py.forEach(a=>ay.forEach(b=>L+=`<path d="M${lx+60} ${a} C ${hx} ${a}, ${hx} ${b}, ${rx-60} ${b}" stroke="#FF8F7A" stroke-width="1.6" stroke-dasharray="5 4" fill="none" opacity=".85"/>`));
+  const node=(cx,y,t)=>`<rect x="${cx-60}" y="${y-15}" width="120" height="30" rx="8" fill="#0D1330" stroke="#2A3470"/><text x="${cx}" y="${y+5}" text-anchor="middle">${esc(t)}</text>`;
+  const hub = on ? `<rect x="${hx-50}" y="${hy-30}" width="100" height="60" rx="14" fill="#7B5CFF"/><text class="hubtxt" x="${hx}" y="${hy+7}" text-anchor="middle">Switch</text>`
+                 : `<rect x="${hx-50}" y="${hy-30}" width="100" height="60" rx="14" fill="none" stroke="#FF8F7A" stroke-dasharray="6 5" opacity=".5"/><text x="${hx}" y="${hy+5}" text-anchor="middle" opacity=".6">no Switch</text>`;
+  return L + hub + py.map((y,i)=>node(lx,y,F.platforms[i])).join('') + ay.map((y,i)=>node(rx,y,F.agents[i])).join('');
+}
+function renderFlip(){
+  const nP=+$('#nPlat').value, nA=+$('#nAgent').value;
+  $('#nPlatLbl').textContent = F.platforms.slice(0,nP).join(', ');
+  $('#nAgentLbl').textContent = F.agents.slice(0,nA).join(', ');
+  [false,true].forEach(on=>{
+    const id = on?'On':'Off', n = on? nP+nA : nP*nA;
+    $('#mesh'+id).innerHTML = meshInner(on,nP,nA);
+    $('#cnt'+id).textContent = n;
+    $('#cntLbl'+id).textContent = on ? 'integrations to maintain. Each chat app connects to Switch once, and each agent connects once.' : 'integrations to maintain. Every agent needs its own client for every chat app.';
+    $('#list'+id).innerHTML = (on?F.buildOn.map(t=>({t})):F.buildOff).map(b=>`<li><span class="x" aria-hidden="true">${on?'✓':'+'}</span><span>${esc(b.t)}${b.per&&nP>1?` <em style="opacity:.7">× ${nP} apps</em>`:''}</span></li>`).join('');
+  });
+  $('#flipDiff').innerHTML = `Adding one more agent costs <b>${nP}</b> new connection${nP>1?'s':''} without Switch, and <b>1</b> with it. Adding one more chat app costs <b>${nA}</b> without Switch, and <b>1</b> with it.`;
+}
+$('#nPlat').addEventListener('input',renderFlip); $('#nAgent').addEventListener('input',renderFlip);
+
+
+// progress bar
+addEventListener('scroll',()=>{ const h=document.documentElement; $('#progress').style.width=(h.scrollTop/Math.max(1,h.scrollHeight-h.clientHeight)*100)+'%'; },{passive:true});
+
+/* ---------- next, guide, status, footer ---------- */
+const SL={live:'Observed live',fixture:'Fixture-tested',unverified:'Not yet verified live'};
+$('#ctas').innerHTML = C.footer.ctas.map(c=>`<a class="${c.pri?'pri':''} ${c.todo?'todo':''}" href="${C.links[c.href]}" ${c.href==='buildGuide'?'':'target="_blank" rel="noopener"'} ${c.todo?'title="Confirm this repository is public"':''}>${esc(c.label)}</a>`).join('');
+
+/* ---------- TOC ---------- */
+const secs=[...document.querySelectorAll('section[data-toc]')];
+const tl=[...document.querySelectorAll('#toc a:not(.ttop)')];
+const tocObs = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) tl.forEach(a=>a.setAttribute('aria-current', a.getAttribute('href')==='#'+e.target.id)); }),{rootMargin:'-35% 0px -60% 0px'});
+secs.forEach(s=>tocObs.observe(s));
+const tocBtn=$('#tocBtn'), drawerMQ=matchMedia('(max-width:1099.98px)');
+function setDrawer(open, refocus){
+  if (!drawerMQ.matches) open=false;
+  document.body.classList.toggle('toc-open', open);
+  tocBtn.setAttribute('aria-expanded', open);
+  ['main','footer'].forEach(q=>{ const el=document.querySelector(q); if(open) el.setAttribute('inert',''); else el.removeAttribute('inert'); });
+  if (open) requestAnimationFrame(()=>{ void $('.toc').offsetWidth; $('#toc a').focus(); }); else if (refocus) tocBtn.focus();
+}
+tocBtn.addEventListener('click',()=>setDrawer(!document.body.classList.contains('toc-open')));
+$('#tocBd').addEventListener('click',()=>setDrawer(false,true));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && document.body.classList.contains('toc-open')){ e.preventDefault(); setDrawer(false,true); } });
+drawerMQ.addEventListener('change',()=>setDrawer(false));
+$('#toc').addEventListener('click',e=>{
+  const st=e.target.closest('.tstory'); const a=e.target.closest('a');
+  if (a) setDrawer(false);
+});
+
+(()=>{
+const STORIES = [
+  { id:"product", title:"A feature request", shape:"◆", route:"product", slides:[
+    { t:"Meet the founder", x:"This is you. You’re building, selling and supporting users, usually all before lunch.",
+      a:{ founder:{at:"fCenter", bubble:"I’m a founder. My users talk to me in four different apps."} } },
+    { t:"A user asks for something", x:"Maya posts in your community Discord. She doesn’t tag anyone. She just says what she needs. You’re in back-to-back calls.",
+      a:{ founder:{at:"fRight", bubble:"Back-to-back calls today…", mood:"busy"}, chat:{app:"discord", msg:"maya", fresh:true} } },
+    { t:"Switch hears it", x:"Switch’s Discord bridge maps the channel to a Switch room. Maya’s message becomes a room event, the same shape it would have from any chat app.", claim:"bridge", doc:"lifeOfMessage", dl:"How a message travels through Switch",
+      hood:"Bridges are configured in Switch, not in FounderLoop. The source channel is <code>#founder-loop-source</code>.",
+      a:{ founder:{at:"fRight", bubble:"Back-to-back calls today…", mood:"busy"}, chat:{app:"discord", msg:"maya"}, relay:{busy:true}, token:{at:"tRelay"}, wires:{in:"flow"} } },
+    { t:"FounderLoop picks it up", x:"FounderLoop holds one connection to Switch and receives every message from its rooms. It doesn’t need a tag, and it never replies in the user’s channel.", claim:"wsAuth", doc:"agentConnection", dl:"Agent connection docs",
+      hood:"Authenticated WebSocket with <code>scope=all</code>, <code>filter=all</code>, cursor resume and app-level ping/pong. Each event carries an <code>addressed</code> flag; FounderLoop reads unaddressed messages on purpose.",
+      a:{ founder:{at:"fRight", mood:"busy"}, chat:{app:"discord", msg:"maya", note:"No bot reply, reaction or typing here."}, relay:{}, robot:{bubble:"New message. Stay quiet, take notes.", work:true}, token:{at:"tRobot"}, wires:{in:"on", agent:"flow"} } },
+    { t:"Evidence first", x:"Before anything else, FounderLoop checks it can link to this exact message. No exact link, no card. The quote is stored exactly as Maya wrote it.", claim:"citation", doc:"agentEvents", dl:"What events contain",
+      hood:"For Discord, the link is built only from trusted native guild, channel and message IDs. A Switch message ID or room ID is never treated as one.",
+      a:{ founder:{at:"fRight", mood:"busy"}, chat:{app:"discord", msg:"maya", hl:true}, relay:{}, robot:{tool:"🔍", bubble:"Exact link found. Quote kept word for word."}, stamp:{text:"✓ exact source link", tone:"good"}, wires:{in:"on", agent:"on"} } },
+    { t:"What kind of signal is it?", x:"FounderLoop sorts signals into three routes: a Product request, a Revenue signal, or a Commitment your team made. Maya’s message is Product.", claim:"classify",
+      hood:"A cheap local filter finds candidates. An optional model can classify them, but its evidence excerpt must be a literal substring of the original message.",
+      a:{ founder:{at:"fRight", mood:"busy"}, chat:{app:"discord", msg:"maya"}, relay:{}, robot:{tool:"🗂️", bubble:"That’s a product request.", work:true}, bins:{on:["product"]}, wires:{in:"on", agent:"on"} } },
+    { t:"Add the context you’d look up", x:"For Product, FounderLoop reads one named Google Doc. CSV export is marked “not planned”. You’ll see both: the user’s words and the current plan.", claim:"docContext",
+      hood:"FounderLoop reads the Doc through its public text export.",
+      a:{ founder:{at:"fRight", mood:"busy"}, chat:{app:"discord", msg:"maya"}, relay:{}, robot:{tool:"📄", bubble:"The roadmap says exports aren’t planned."}, bins:{on:["product"]}, doc:{route:"product"}, wires:{in:"on", agent:"on"} } },
+    { t:"A card reaches you", x:"Between calls, a card lands in your private Slack channel: the exact quote, the source link, the Doc context. Try the buttons.", claim:"card", doc:"agentProtocol", dl:"Agent protocol docs",
+      hood:"FounderLoop posts with <code>POST /agents/{id}/message</code> and <code>{room_id, content}</code>. Switch’s Slack bridge delivers it to <code>#founder-loop-founder</code>. In Slack you reply with a command like <code>FL-P1042 ACCEPT</code>.",
+      a:{ founder:{at:"fRight", bubble:"Oh, this one matters."}, chat:{app:"discord", msg:"maya"}, relay:{}, robot:{bubble:"Card sent to the founder."}, card:{routes:["product"]}, token:{at:"tCard"}, wires:{in:"on", agent:"on", out:"flow"} } },
+    { t:"The right team hears it", x:"One verdict goes to the product channel, with the same source link. The card is CLOSED. That means the verdict was delivered, not that the work is done.", claim:"verdict", doc:"slackSetup", dl:"Slack setup docs",
+      hood:"Only a message from the founder’s Switch sender ID counts. Repeating the command can’t create a second verdict.",
+      a:{ founder:{at:"fRight", bubble:"Decided. Back to my call."}, chat:{app:"discord", msg:"maya"}, relay:{}, robot:{bubble:"Verdict delivered."}, team:{route:"product"}, token:{at:"tTeam"}, wires:{in:"on", agent:"on", out:"on"} } }
+  ]},
+  { id:"revenue", title:"A buying signal", shape:"●", route:"revenue", slides:[
+    { t:"A buying signal in a shared channel", x:"Your biggest prospect asks about pricing in a Slack Connect channel. You’re on a flight.",
+      a:{ founder:{at:"fRight", bubble:"On a flight. Wi-Fi is terrible.", mood:"busy"}, chat:{app:"slack", msg:"priya", fresh:true} } },
+    { t:"Same agent, different app", x:"Switch’s Slack bridge delivers it as the same kind of room event as Discord. FounderLoop doesn’t care which app it came from.", claim:"bridge", doc:"slackSetup", dl:"Slack setup docs",
+      hood:"For Slack sources, FounderLoop asks Slack’s <code>chat.getPermalink</code> for the exact link, using the native channel ID and message <code>ts</code>.",
+      a:{ founder:{at:"fRight", mood:"busy"}, chat:{app:"slack", msg:"priya", note:"No bot reply in the shared channel."}, relay:{busy:true}, robot:{bubble:"Exact Slack permalink found.", tool:"🔍"}, token:{at:"tRobot"}, wires:{in:"on", agent:"flow"} } },
+    { t:"Check the Leads Sheet", x:"It’s a Revenue signal. FounderLoop checks one named Leads Sheet by stable user ID. No match, so this looks like a new lead.", claim:"sheet",
+      hood:"Display-name-only matches stay “possibly existing”.",
+      a:{ founder:{at:"fRight", mood:"busy"}, chat:{app:"slack", msg:"priya"}, relay:{}, robot:{tool:"📊", bubble:"Buying signal. Not in the Sheet yet.", work:true}, bins:{on:["revenue"]}, doc:{route:"revenue"}, wires:{in:"on", agent:"on"} } },
+    { t:"You decide, at the gate", x:"The card arrives with Priya’s exact words. Accept it, and the verdict goes to Sales.", claim:"card",
+      a:{ founder:{at:"fRight", bubble:"40 seats? Yes please."}, chat:{app:"slack", msg:"priya"}, relay:{}, robot:{bubble:"Card sent."}, card:{routes:["revenue"]}, token:{at:"tCard"}, wires:{in:"on", agent:"on", out:"flow"} } },
+    { t:"Sales picks it up", x:"One verdict lands in the sales channel. If Sheet writing is switched on and authorised, an accepted lead can also be added to the Sheet.", claim:"verdict",
+      hood:"Sheet writes re-read by stable lead ID before append or update, so a retry can’t create a duplicate row.",
+      a:{ founder:{at:"fRight", bubble:"Done before landing."}, chat:{app:"slack", msg:"priya"}, relay:{}, robot:{bubble:"Sales has it."}, team:{route:"revenue"}, token:{at:"tTeam"}, wires:{in:"on", agent:"on", out:"on"} } }
+  ]},
+  { id:"commitment", title:"A promise you made", shape:"▲", route:"commitment", slides:[
+    { t:"A user holds you to a promise", x:"Sam reminds everyone in Discord that your team said SSO would be fixed by Friday.",
+      a:{ founder:{at:"fRight", bubble:"Was that this Friday?", mood:"busy"}, chat:{app:"discord", msg:"sam", fresh:true}, relay:{busy:true}, token:{at:"tRelay"}, wires:{in:"flow"} } },
+    { t:"An issue, or a promise?", x:"FounderLoop separates a user issue from an explicit promise your company made. This one is a promise, which raises the stakes.", claim:"classify",
+      a:{ founder:{at:"fRight", mood:"busy"}, chat:{app:"discord", msg:"sam", hl:true}, relay:{}, robot:{tool:"⚖️", bubble:"“Your team said…”: that’s a promise.", work:true}, bins:{on:["commitment"]}, wires:{in:"on", agent:"on"} } },
+    { t:"You decide what to tell Support", x:"The card shows Sam’s exact words. Comment to give Support your instructions.", claim:"card",
+      a:{ founder:{at:"fRight", bubble:"We did say that. Let’s own it."}, chat:{app:"discord", msg:"sam"}, relay:{}, robot:{bubble:"Card sent."}, card:{routes:["commitment"]}, token:{at:"tCard"}, wires:{in:"on", agent:"on", out:"flow"} } },
+    { t:"Support hears it", x:"One verdict goes to the support channel. FounderLoop doesn’t assign owners or track the fix. That stays with your team.", claim:"verdict",
+      a:{ founder:{at:"fRight", bubble:"Handled."}, chat:{app:"discord", msg:"sam"}, relay:{}, robot:{bubble:"Support has it."}, team:{route:"commitment"}, token:{at:"tTeam"}, wires:{in:"on", agent:"on", out:"on"} } }
+  ]},
+  { id:"blocked", title:"No proof, no card", shape:"✕", slides:[
+    { t:"When the source can’t be proven", x:"Same message, but this time the event arrives without trusted native IDs, so there’s no way to link back to the exact message.", claim:"citation",
+      hood:"Switch’s generic message event doesn’t promise native Discord or Slack IDs. FounderLoop never guesses them from a Switch message ID.",
+      a:{ founder:{at:"fRight", mood:"busy"}, chat:{app:"discord", msg:"maya"}, relay:{}, robot:{tool:"🔍", bubble:"I can’t link to the original message…", work:true}, token:{at:"tRobot"}, wires:{in:"on", agent:"flow"} } },
+    { t:"No card, by design", x:"FounderLoop records EVIDENCE_BLOCKED and sends nothing. A card without a source would ask you to trust a paraphrase, which is the problem we started with.", claim:"citation",
+      a:{ founder:{at:"fRight", bubble:"Nothing needs me. Good."}, chat:{app:"discord", msg:"maya"}, relay:{}, robot:{bubble:"Blocked. No card sent."}, stamp:{text:"EVIDENCE_BLOCKED", tone:"bad"}, wires:{in:"on", agent:"on"} } }
+  ]},
+  { id:"chatter", title:"Just chatter", shape:"○", slides:[
+    { t:"Most messages aren’t decisions", x:"Kit says thanks for the meetup. Nice, but there’s nothing to decide.",
+      a:{ founder:{at:"fRight", bubble:"Deep work mode.", mood:"busy"}, chat:{app:"discord", msg:"kit", fresh:true}, relay:{busy:true}, token:{at:"tRelay"}, wires:{in:"flow"} } },
+    { t:"FounderLoop stays silent", x:"No signal, no card, no reply. You’re only interrupted when there’s a decision to make.", claim:"classify",
+      a:{ founder:{at:"fRight", bubble:"Still in deep work."}, chat:{app:"discord", msg:"kit"}, relay:{}, robot:{bubble:"Nothing to decide. Moving on."}, bins:{on:[]}, wires:{in:"on", agent:"on"} } }
+  ]}
+];
+
+// Named positions: [x%, y%, scale]
+const ANCHORS = {
+  wide: { fCenter:[50,60,1.6], fRight:[90,25,1], chat:[19,40], relay:[45,18], robot:[51,58], bins:[51,88], doc:[70,50], card:[83,68], team:[83,68], stamp:[51,33],
+          tChat:[34,36], tRelay:[45,18], tRobot:[51,48], tCard:[66,66], tTeam:[66,66] },
+  tall: { fCenter:[50,58,1.5], fRight:[86,44,.95], chat:[45,17], relay:[14,44], robot:[47,46], bins:[38,66], doc:[83,66], card:[50,82], team:[50,82], stamp:[47,31],
+          tChat:[45,30], tRelay:[14,44], tRobot:[47,42], tCard:[50,68], tTeam:[50,68] }
+};
+const WIRES = {
+  wide: { in:"M36 33 C39 28 39 22 39 19", agent:"M47 25 C48 36 50 42 51 46", out:"M57 60 C61 62 64 65 67 66" },
+  tall: { in:"M16 28 C15 32 14 35 14 37", agent:"M22 45 C28 45 34 45 38 45", out:"M47 56 C47 60 49 64 50 67" }
+};
+
+
+const S={switchOn:true,hood:false,i:0,decisions:{},custom:null,auto:null};
+const setSwitch=on=>{S.switchOn=on;$('#swTog').checked=on;renderStage();};
+/* =====================================================================
+   STORY CARD ENGINE
+   ===================================================================== */
+const FLAT = []; STORIES.forEach((st,si)=>st.slides.forEach((sl,j)=>FLAT.push({st,si,sl,j})));
+const N = FLAT.length;
+
+const ROBOT_SVG = `<svg viewBox="0 0 100 120" aria-hidden="true"><line x1="50" y1="6" x2="50" y2="20" stroke="var(--ink)" stroke-width="4"/><circle cx="50" cy="7" r="6" fill="var(--ant, var(--violet))"/><rect x="14" y="20" width="72" height="52" rx="16" fill="var(--ink)"/><rect x="23" y="30" width="54" height="31" rx="9" fill="#1E3B3A"/><rect x="33" y="38" width="10" height="13" rx="4" fill="#7CF0DA"/><rect x="57" y="38" width="10" height="13" rx="4" fill="#7CF0DA"/><rect x="26" y="76" width="48" height="36" rx="11" fill="var(--ink)"/><circle cx="50" cy="94" r="7" fill="var(--ant, var(--violet))"/><path d="M26 86 12 98M74 86l14 12" stroke="var(--ink)" stroke-width="6" stroke-linecap="round"/></svg>`;
+const FOUNDER_SVG = `<svg viewBox="0 0 100 112" aria-hidden="true"><path d="M14 112c2-24 16-36 36-36s34 12 36 36z" fill="#2F5BEA"/><path d="M42 70h16v10a8 8 0 0 1-16 0z" fill="#C98A5E"/><circle cx="50" cy="44" r="26" fill="#D9A27A"/><path d="M24 42c0-18 12-28 27-28 14 0 26 9 26 24-6-6-16-10-30-9-10 1-17 6-23 13z" fill="#2B1D16"/><circle cx="41" cy="47" r="3" fill="#2B1D16"/><circle cx="59" cy="47" r="3" fill="#2B1D16"/><path class="mouth" d="M42 58c4 4 12 4 16 0" stroke="#2B1D16" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+
+// build actors once
+$('#actors').innerHTML = `
+  <div class="actor a-founder" data-a="founder">${FOUNDER_SVG}<div class="ftag">You</div><div class="bubble"></div></div>
+  <div class="actor a-chat" data-a="chat"></div>
+  <div class="actor a-relay" data-a="relay"><div class="relay-box"><div class="sw"></div><div class="lights"><i></i><i></i><i></i></div></div><div class="relay-name">Switch</div><div class="relay-sub">messages in and out</div></div>
+  <div class="actor a-robot" data-a="robot">${ROBOT_SVG}<div class="tool"></div><div class="robot-name">FounderLoop<span>one agent</span></div><div class="bubble"></div></div>
+  <div class="actor a-bins" data-a="bins">${Object.entries(C.routes).map(([k,r])=>`<div class="bin" data-r="${k}"><div class="cup">${r.shape}</div>${r.label}</div>`).join('')}</div>
+  <div class="actor a-doc" data-a="doc"></div>
+  <div class="actor a-card" data-a="card"></div>
+  <div class="actor a-team" data-a="team"></div>
+  <div class="actor a-stamp" data-a="stamp"></div>
+  <div class="actor a-token" data-a="token" aria-hidden="true"></div>`;
+const A = {}; document.querySelectorAll('#actors .actor').forEach(el=>A[el.dataset.a]=el);
+
+function classify(text){
+  const t=text.toLowerCase(), R=C.routes, out=[];
+  const hit = ws=>ws.find(w=>t.includes(w));
+  if (hit(R.product.words)) out.push({r:'product', kind:'Feature request'});
+  if (hit(R.revenue.words)) out.push({r:'revenue', kind:'Buying signal'});
+  if (hit(R.commitment.promise)) out.push({r:'commitment', kind:'Explicit promise'});
+  else if (hit(R.commitment.words) && !out.length) out.push({r:'commitment', kind:'User issue'});
+  const sents = text.match(/[^.!?]+[.!?]?/g)||[text];
+  out.forEach(o=>{ const ws = o.r==='commitment'?[...R.commitment.promise,...R.commitment.words]:R[o.r].words; o.ex=(sents.find(s=>ws.some(w=>s.toLowerCase().includes(w)))||text).trim(); });
+  return out;
+}
+const msgOf = key => key==='custom' ? { name:'you', color:'#7B5CFF', text:S.custom } : C[key];
+const cardId = r => 'FL-'+({product:'P',revenue:'R',commitment:'C'})[r]+'1042';
+const routeColor = r => r==='product'?'var(--teal)':r==='revenue'?'#D99A1E':r==='commitment'?'var(--coral)':'var(--violet)';
+
+function customActors(){
+  if (!S.custom) return { founder:{at:"fRight", bubble:"Go on, test me."}, chat:{app:"discord", msg:null, compose:true}, robot:{bubble:"Waiting for a message…"} };
+  const routes = classify(S.custom);
+  const a = { founder:{at:"fRight"}, chat:{app:"discord", msg:"custom", compose:true, note:"No bot reply here."}, relay:{}, robot:{}, wires:{in:"on", agent:"on"} };
+  if (!routes.length){ a.robot.bubble="Nothing to decide. I stay silent."; a.founder.bubble="Not interrupted. Nice."; a.bins={on:[]}; return a; }
+  a.bins={on:routes.map(r=>r.r)}; a.card={routes:routes.map(r=>r.r), custom:routes}; a.wires.out="flow"; a.token={at:"tCard"};
+  a.robot.bubble = routes.map(r=>C.routes[r.r].label).join(' + ')+'. Card sent.';
+  a.founder.bubble = routes.length>1 ? "Two decisions from one message." : "Let me decide.";
+  return a;
+}
+
+function anchors(){ return A.chat.parentElement.parentElement.clientWidth <= 620 ? 'tall' : 'wide'; }
+
+function place(el, at){
+  const set = ANCHORS[anchors()][at]; if(!set) return;
+  el.style.setProperty('--x', set[0]+'%'); el.style.setProperty('--y', set[1]+'%'); el.style.setProperty('--s', set[2]||1);
+}
+
+let lastChatKey = null;
+function renderStage(){
+  const {st,si,sl,j} = FLAT[S.i];
+  let a = sl.a==='custom' ? customActors() : JSON.parse(JSON.stringify(sl.a));
+  const off = !S.switchOn;
+  if (off){
+    // Switch off: nothing moves past the chat app
+    const keep = { founder:a.founder, chat:a.chat };
+    if (a.chat){ keep.relay={off:true}; keep.robot={bubble:"Nothing arrives. Without Switch I’d need my own Discord and Slack clients."}; keep.wires={in:"broken"}; keep.token={at:"tChat"}; keep.stamp={text:"no route", tone:"bad"}; if(keep.founder) keep.founder={...keep.founder, bubble:"Never heard about it."}; }
+    a = keep;
+  }
+  const mode = anchors();
+  // hide/show
+  Object.entries(A).forEach(([k,el])=>{ el.classList.toggle('show', !!a[k]); });
+
+  // founder
+  if (a.founder){ place(A.founder, a.founder.at); A.founder.classList.toggle('center', a.founder.at==='fCenter'); A.founder.querySelector('.bubble').textContent = a.founder.bubble||''; }
+  // chat
+  if (a.chat){
+    place(A.chat,'chat');
+    const m = a.chat.msg ? msgOf(a.chat.msg) : null;
+    const app = a.chat.app;
+    const key = app+'|'+(m?m.text:'')+'|'+!!a.chat.compose;
+    if (key!==lastChatKey){
+      A.chat.className = 'actor a-chat show '+(app==='slack'?'sk':'dc');
+      A.chat.innerHTML = `<div class="h">${app==='slack'?'Slack Connect':'Discord'}<span>${app==='slack'?'# acme-shared':'# community'}</span></div><div class="b">
+        ${m?`<div class="m ${a.chat.fresh?'new':''}"><span class="av" style="background:${m.color}">${esc(m.name[0].toUpperCase())}</span><div><span class="nm">${esc(m.name)}</span><span class="tm">${a.chat.msg==='custom'?'just now':'10:42'}</span><br>${esc(m.text)}</div></div>`:''}
+        <div class="note"></div>
+        ${a.chat.compose?`<label class="sr" for="cin">Write a user message</label><textarea id="cin" rows="2" placeholder="Message #community"></textarea><div class="sendrow"><button class="go" type="button" id="csend">Send</button>${C.samples.map((s,i)=>`<button type="button" data-s="${i}">${['Feature','Pricing','Promise','Chatter'][i]}</button>`).join('')}</div>`:''}</div>`;
+      lastChatKey = key;
+      if (a.chat.compose){
+        const go = t=>{ if(!t.trim()) return; S.custom=t.trim().slice(0,300); S.decisions.custom={}; lastChatKey=null; renderStage(); };
+        $('#csend').onclick=()=>go($('#cin').value);
+        $('#cin').onkeydown=e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); go(e.target.value);} };
+        A.chat.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>go(C.samples[+b.dataset.s]));
+      }
+    }
+    A.chat.classList.add('show');
+    A.chat.classList.toggle('hl', !!a.chat.hl);
+    A.chat.querySelector('.note').textContent = a.chat.note||'';
+  }
+  // relay
+  if (a.relay){ place(A.relay,'relay'); A.relay.classList.toggle('busy', !!a.relay.busy); A.relay.classList.toggle('off', !!a.relay.off); }
+  // robot
+  if (a.robot){ place(A.robot,'robot'); A.robot.querySelector('.bubble').textContent=a.robot.bubble||''; A.robot.querySelector('.tool').textContent=a.robot.tool||''; A.robot.classList.toggle('work',!!a.robot.work);
+    const r = (a.bins&&a.bins.on&&a.bins.on[0]) || st.route; A.robot.style.setProperty('--ant', r?routeColor(r):'var(--violet)'); A.robot.classList.toggle('dim', off); }
+  // bins
+  if (a.bins){ place(A.bins,'bins'); A.bins.querySelectorAll('.bin').forEach(b=>b.classList.toggle('on', a.bins.on.includes(b.dataset.r))); }
+  // doc
+  if (a.doc){ place(A.doc,'doc'); const ctx=C.routes[a.doc.route].ctx; A.doc.className='actor a-doc show '+(ctx.kind==='sheet'?'sheet':''); A.doc.innerHTML=`<div class="h">${ctx.kind==='sheet'?'Google Sheet':'Google Doc'}</div><div class="b"><b>${esc(ctx.title)}</b><div>…</div><mark>${esc(ctx.line)}</mark><div>…</div></div>`; }
+  // card
+  if (a.card){ place(A.card,'card');
+    const isCustom = !!a.card.custom; const dkey = isCustom?'custom':st.id; S.decisions[dkey] = S.decisions[dkey]||{};
+    const m = isCustom? msgOf('custom') : msgOf(st.slides.find(s=>s.a.chat&&s.a.chat.msg).a.chat.msg);
+    const list = isCustom? a.card.custom : a.card.routes.map(r=>({r, ex:m.text, kind:''}));
+    A.card.innerHTML = `<div class="h">#founder-loop-founder<span>private</span></div><div class="c">${list.map(o=>{ const R=C.routes[o.r]; const d=S.decisions[dkey][o.r]; const ctx=R.ctx;
+      return `<div class="fcard" data-r="${o.r}"><div class="t">${R.shape} ${R.label} signal <span style="font-weight:400;color:#777">${cardId(o.r)}</span>${d?'<span class="closed">DECIDED</span>':''}</div><q>${esc(o.ex)}</q><div class="r"><a href="#" onclick="return false">Source: ${esc(m.name)}’s message</a>${ctx?`. ${esc(ctx.title)}: ${esc(ctx.line)}`:''}</div>
+      <div class="acts" role="group" aria-label="Decision for ${cardId(o.r)}">${['Accept','Reject','Comment'].map(x=>`<button type="button" class="${x==='Accept'?'pri':''}" data-k="${dkey}" data-r="${o.r}" data-d="${x}" aria-pressed="${d===x}">${x}</button>`).join('')}</div></div>`}).join('')}</div>`;
+    A.card.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{ S.decisions[b.dataset.k][b.dataset.r]=b.dataset.d; renderStage(); });
+  }
+  // team
+  if (a.team){ place(A.team,'team'); const R=C.routes[a.team.route]; const d=(S.decisions[st.id]||{})[a.team.route]||'Accept';
+    A.team.innerHTML = `<div class="h">${R.room}</div><div class="c"><b>FounderLoop</b> <span style="color:#777">10:46</span><br>Founder ${d==='Accept'?'accepted':d==='Reject'?'rejected':'commented on'} a ${R.label.toLowerCase()} signal${d==='Comment'?': “Let’s talk to them this week.”':'.'} Source link included. <span class="closed">CLOSED</span><div class="who"><i>${R.team[0]}</i>${R.team} team notified</div></div>`; }
+  // stamp, token
+  if (a.stamp){ place(A.stamp,'stamp'); A.stamp.className='actor a-stamp show '+a.stamp.tone; A.stamp.textContent=a.stamp.text; }
+  if (a.token){ place(A.token, a.token.at); }
+  // wires
+  const W = WIRES[mode], w=a.wires||{};
+  ['in','agent','out'].forEach(k=>{ const p=$('#w-'+k); p.setAttribute('d', W[k]); p.setAttribute('class', w[k]==='flow'?'on flow':w[k]==='on'?'on':w[k]==='broken'?'broken':''); p.style.opacity = (k==='in'&&a.chat&&a.relay)||(k==='agent'&&a.robot)||(k==='out'&&(a.card||a.team)) ? 1 : 0; });
+
+  // caption
+  $('#sKick').innerHTML = `<span class="shape" style="color:${routeColor(st.route)}">${st.shape}</span> Story ${si+1} of ${STORIES.length}: ${esc(st.title)} <span class="simm" style="display:none;color:var(--ink-3)">(simulated)</span><span style="margin-left:auto">${j+1}/${st.slides.length}</span>`;
+  $('#sTitle').textContent = off && a.chat ? 'With Switch off, nothing arrives' : sl.t;
+  $('#sText').innerHTML = off && a.chat ? 'With Switch off, the message stays in the user’s app. Nothing maps the channel to a room, so FounderLoop never hears it. Turn Switch back on to continue the story.' : sl.x;
+  $('#sMeta').innerHTML = (sl.claim?chip(sl.claim):'') + (sl.doc?dlink(sl.doc, sl.dl):'');
+  $('#sHood').innerHTML = sl.hood||'No extra technical notes for this step.';
+  document.querySelectorAll('.stab').forEach((b,k)=>b.setAttribute('aria-current', k===si));
+  $('#dots').innerHTML = st.slides.map((_,k)=>`<i class="${k===j?'on':k<j?'done':''}"></i>`).join('');
+  $('#prevBtn').disabled = S.i===0; $('#nextBtn').textContent = S.i===N-1?'Done':(j===st.slides.length-1?'Next story':'Next');
+  $('#nextBtn').disabled = S.i===N-1;
+  document.querySelectorAll('#toc .tstory').forEach(b=>b.setAttribute('aria-current', +b.dataset.k===si));
+  if (renderStage.last!==S.i){ renderStage.last=S.i; $('#scapTxt').scrollTop=0; }
+}
+
+// tabs
+$('#stabs').innerHTML = STORIES.map((st,k)=>`<button class="stab" role="tab" type="button" data-k="${k}"><span style="color:${routeColor(st.route)}" aria-hidden="true">${st.shape}</span>${esc(st.title)}</button>`).join('');
+
+/* ----- scroll <-> slide sync ----- */
+const scrollEl = $('#storyScroll');
+const SLIDE_VH = 0.62;
+function sizeStage(){
+  const stage=$('#stage'), wrap=$('.stage-wrap'), card=$('#scard'), sticky=$('.story-sticky');
+  const topOff = parseFloat(getComputedStyle(sticky).top)||0;
+  const rest = card.offsetHeight - stage.offsetHeight;
+  const avail = Math.max(160, innerHeight - topOff - rest - 24);
+  const ww = wrap.clientWidth;
+  let w, h;
+  if (ww <= 620){ w=ww; h=Math.max(ww*0.95, Math.min(ww*1.25, avail)); }
+  else { w=Math.max(621, Math.min(ww, avail*16/9)); h=w*9/16; }
+  stage.style.width=Math.floor(w)+'px'; stage.style.height=Math.floor(h)+'px';
+}
+function layoutStory(){ sizeStage(); setHeight(); lastChatKey=null; renderStage(); }
+function setHeight(){ scrollEl.style.height = `calc(${N} * ${SLIDE_VH*100}vh + ${$('.story-sticky').offsetHeight + 40}px)`; }
+const startY = ()=> scrollEl.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top'))||52) - 10;
+function slideFromScroll(){ const y = scrollY - startY(); return Math.max(0, Math.min(N-1, Math.floor(y/(innerHeight*SLIDE_VH) + 0.0001))); }
+function go(i, smooth=true){ i=Math.max(0,Math.min(N-1,i)); const target = startY() + i*innerHeight*SLIDE_VH + 2; scrollTo({top:target, behavior: (smooth&&!reduced)?'smooth':'auto'}); S.i=i; renderStage(); }
+let ticking=false;
+addEventListener('scroll',()=>{ if(ticking) return; ticking=true; requestAnimationFrame(()=>{ ticking=false; const k=slideFromScroll(); if(k!==S.i){ S.i=k; renderStage(); } const h=document.documentElement; $('#progress').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'; }); }, {passive:true});
+addEventListener('resize',layoutStory);
+
+$('#nextBtn').onclick=()=>go(S.i+1); $('#prevBtn').onclick=()=>go(S.i-1);
+$('#stabs').addEventListener('click',e=>{ const b=e.target.closest('.stab'); if(!b) return; const k=+b.dataset.k; go(FLAT.findIndex(f=>f.si===k), false); });
+$('#swTog').addEventListener('change',e=>setSwitch(e.target.checked));
+$('#wHoodTog').addEventListener('change',e=>{ S.hood=e.target.checked; $('#scard').classList.toggle('hood-on',S.hood); layoutStory(); });
+$('#autoBtn').onclick=()=>{ if(S.auto){ clearInterval(S.auto); S.auto=null; $('#autoBtn').textContent='Autoplay'; $('#autoBtn').setAttribute('aria-pressed','false'); return; }
+  $('#autoBtn').textContent='Pause'; $('#autoBtn').setAttribute('aria-pressed','true'); if (slideFromScroll()!==S.i || scrollY < startY()) go(S.i,false);
+  S.auto=setInterval(()=>{ if(S.i>=N-1 || FLAT[S.i].sl.a==='custom'){ $('#autoBtn').click(); return; } go(S.i+1); }, 3800); };
+document.addEventListener('keydown',e=>{
+  const r=$('#scard').getBoundingClientRect(); if (r.top>innerHeight*.6 || r.bottom<innerHeight*.3) return;
+  if (['TEXTAREA','INPUT'].includes(document.activeElement.tagName)) return;
+  if (e.key==='ArrowRight'){ e.preventDefault(); go(S.i+1); } if (e.key==='ArrowLeft'){ e.preventDefault(); go(S.i-1); } });
+
+
+layoutStory();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layoutStory);
+})();
+/* ---------- start ---------- */
+renderFlip();
+</script>
+</body>
+</html>
