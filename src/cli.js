@@ -4,9 +4,11 @@ import { Store } from './store.js';
 import { FounderLoop } from './loop.js';
 import { FixtureTransport, SwitchTransport } from './transport.js';
 import { SwitchConnection } from './switch-connection.js';
+import { SlackInteractionConnection } from './slack-interactions.js';
 import { readConfig, validateLive } from './config.js';
 
 const mode = process.argv[2];
+const databasePath = () => resolve(process.env.FOUNDER_LOOP_DB || './data/founder-loop.sqlite');
 
 async function demo() {
   const scope = process.argv[3] || 'all';
@@ -51,8 +53,10 @@ async function demo() {
 async function live() {
   const config = readConfig();
   validateLive(config);
-  const store = new Store(resolve(process.env.FOUNDER_LOOP_DB || './data/founder-loop.sqlite'));
+  const store = new Store(databasePath());
+  config.telegramEvidenceStore = store;
   const loop = new FounderLoop({ store, transport: new SwitchTransport(config), config });
+  loop.recoverDecisions();
   await loop.flush();
   const retry = setInterval(() => loop.flush().catch(error => console.error(`Outbox retry: ${error.message}`)), 10000);
   const connection = new SwitchConnection({ config, store, onEvent: async frame => {
@@ -68,15 +72,39 @@ async function live() {
       if (result.status !== 'INVALID_COMMAND') console.log(`Founder command: ${result.status}`);
     }
   } });
-  const shutdown = () => { clearInterval(retry); connection.stop(); };
+  const slackActions = config.slackFounderAppToken && config.slackFounderBotToken
+    ? new SlackInteractionConnection({ config, store, loop }) : null;
+  const slackTask = slackActions?.run();
+  const shutdown = () => { clearInterval(retry); connection.stop(); slackActions?.stop(); };
   process.once('SIGINT', shutdown);
   process.once('SIGTERM', shutdown);
   console.log('LIVE Switch adapter starting. Source rooms are read only; native source IDs are required for cards.');
   await connection.run();
+  slackActions?.stop();
+  await slackTask;
   clearInterval(retry);
   store.close();
 }
 
+function reconcile() {
+  const [key, resolution, ref] = process.argv.slice(3);
+  const store = new Store(databasePath(), { recover: false });
+  try {
+    if (!key) {
+      console.table(store.listOutbox().filter(item => item.state === 'UNCERTAIN')
+        .map(({ key, kind, destination, attempt_count }) => ({ key, kind, destination, attempt_count })));
+      return;
+    }
+    const config = readConfig();
+    validateLive(config);
+    new FounderLoop({ store, config }).reconcileDelivery(key, resolution, ref);
+    console.log(`Recorded ${resolution} for ${key}. The agent will resume any queued work.`);
+  } finally {
+    store.close();
+  }
+}
+
 if (mode === 'demo') await demo();
 else if (mode === 'live') await live();
+else if (mode === 'reconcile') reconcile();
 else { console.error('Use `npm run demo`, `npm run demo:product`, or `npm run live`.'); process.exitCode = 2; }

@@ -3,7 +3,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 export class Store {
-  constructor(path = ':memory:') {
+  constructor(path = ':memory:', { recover = true } = {}) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
     this.db = new DatabaseSync(path);
     this.db.exec('PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;');
@@ -47,10 +47,21 @@ export class Store {
       );
       CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     `);
-    this.recoverInterrupted();
+    if (recover) this.recoverInterrupted();
   }
 
   close() { this.db.close(); }
+  transaction(work) {
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const result = work();
+      this.db.exec('COMMIT');
+      return result;
+    } catch (error) {
+      this.db.exec('ROLLBACK');
+      throw error;
+    }
+  }
   getEvent(key) { return this.db.prepare('SELECT * FROM source_events WHERE source_key=?').get(key); }
   getCard(id) { return this.db.prepare('SELECT * FROM cards WHERE id=?').get(id); }
   getCardBySource(key, category = 'PRODUCT') {
@@ -113,7 +124,8 @@ export class Store {
   }
   pending() {
     return this.db.prepare(`SELECT * FROM outbox WHERE state IN ('PENDING','FAILED')
-      ORDER BY CASE kind WHEN 'FOUNDER_CARD' THEN 0 WHEN 'SHEET_WRITE' THEN 1 ELSE 2 END, key`).all();
+      ORDER BY CASE kind WHEN 'FOUNDER_CARD' THEN 0 WHEN 'SHEET_WRITE' THEN 1
+        WHEN 'INTERNAL_VERDICT' THEN 2 ELSE 3 END, key`).all();
   }
   begin(key) {
     this.db.prepare("UPDATE outbox SET state='IN_FLIGHT' WHERE key=? AND state IN ('PENDING','FAILED')").run(key);
@@ -121,6 +133,10 @@ export class Store {
   recoverInterrupted() {
     const interrupted = this.db.prepare("SELECT key,card_id,kind FROM outbox WHERE state='IN_FLIGHT'").all();
     for (const item of interrupted) {
+      if (item.kind === 'CLOSE_CARD') {
+        this.failed(item.key, 'Interrupted edit of the same Slack message');
+        continue;
+      }
       this.db.prepare("UPDATE outbox SET state='UNCERTAIN', last_error='Process stopped during external operation' WHERE key=?")
         .run(item.key);
       this.db.prepare('UPDATE cards SET state=? WHERE id=?')
@@ -144,7 +160,16 @@ export class Store {
     this.db.prepare(`UPDATE outbox SET state='UNCERTAIN', attempt_count=attempt_count+1,
       last_error=? WHERE key=?`).run(String(error).slice(0, 300), key);
   }
+  retryUncertain(key) {
+    this.db.prepare("UPDATE outbox SET state='PENDING', last_error=NULL WHERE key=? AND state='UNCERTAIN'").run(key);
+  }
   getOutbox(key) { return this.db.prepare('SELECT * FROM outbox WHERE key=?').get(key); }
+  decisionsWithoutHandoff() {
+    return this.db.prepare(`SELECT c.* FROM cards c JOIN decisions d ON d.card_id=c.id
+      WHERE c.state <> 'CLOSED'
+      AND NOT EXISTS (SELECT 1 FROM outbox WHERE key='verdict:' || c.id)
+      AND NOT EXISTS (SELECT 1 FROM outbox WHERE key='sheet:' || c.id AND state <> 'SENT')`).all();
+  }
   decision(id) { return this.db.prepare('SELECT * FROM decisions WHERE card_id=?').get(id); }
   addDecision(id, actor, verdict, comment) {
     const result = this.db.prepare(`INSERT OR IGNORE INTO decisions

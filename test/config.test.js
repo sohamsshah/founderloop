@@ -20,3 +20,16 @@ test('enabling another live category requires its destination room', () => {
   assert.throws(() => validateLive(readConfig({ ...base, FOUNDER_LOOP_ENABLED_CATEGORIES: 'PRODUCT,COMMITMENT' })), /supportRoomId/);
   assert.throws(() => validateLive(readConfig({ ...base, FOUNDER_LOOP_ENABLED_CATEGORIES: 'UNKNOWN' })), /FOUNDER_LOOP_ENABLED_CATEGORIES/);
 });
+
+test('mixed source mappings constrain category and platform to configured rooms', () => {
+  const config = readConfig({ ...base, SWITCH_SOURCE_ROOM_IDS: 'source,support',
+    SWITCH_SUPPORT_ROOM_ID: 'support', FOUNDER_LOOP_ENABLED_CATEGORIES: 'PRODUCT,COMMITMENT',
+    SWITCH_SOURCE_PLATFORMS: '{"source":"discord","support":"slack"}',
+    SWITCH_SOURCE_CATEGORIES: '{"source":["PRODUCT"],"support":["COMMITMENT"]}',
+    SLACK_SOURCE_CHANNELS: '{"support":"C12345678"}' });
+  assert.doesNotThrow(() => validateLive(config));
+  assert.deepEqual(config.sourceCategories.support, ['COMMITMENT']);
+  assert.equal(config.slackSourceChannels.support, 'C12345678');
+  assert.throws(() => validateLive({ ...config, sourceCategories: { other: ['COMMITMENT'] } }), /SWITCH_SOURCE_CATEGORIES/);
+  assert.throws(() => validateLive({ ...config, slackSourceChannels: { other: 'C12345678' } }), /SLACK_SOURCE_CHANNELS/);
+});

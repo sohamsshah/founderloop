@@ -1,0 +1,20 @@
+services:
+  founder-loop-agent:
+    build: .
+    init: true
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SWITCH_BASE_URL: http://switch:8000
+      FOUNDER_LOOP_DB: /app/data/founder-loop.sqlite
+    volumes:
+      - ./data:/app/data
+      - ./secrets:/run/founder-loop-secrets:ro
+    networks:
+      - switch
+
+networks:
+  switch:
+    external: true
+    name: founderloop-switch_default

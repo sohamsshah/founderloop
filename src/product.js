@@ -4,10 +4,10 @@ import { getGoogleToken } from './google-auth.js';
 export function classifyProduct(text) {
   const lower = text.toLowerCase();
   if (/ignore (all|previous) instructions|paste .*discussions|reveal .*secret/.test(lower)) return null;
-  const request = /\b(can you|could you|please add|feature request|we need|would like|wish (?:you|it)|support for)\b/.test(lower);
+  const request = /\b((?:can|could) (?:you|we|product)|please add|feature request|we need|would like|wish (?:you|it)|support for)\b/.test(lower);
   const feature = /\b(export|schedule|sso|integration|api|dashboard|report|webhook|bug|error|broken|timeout)\w*/.test(lower);
   const bug = /\b(bug|error|broken|doesn.t work|timeout)\b/.test(lower);
-  if (!(request && feature) && !bug) return null;
+  if (!(request && feature) && !bug && !/\b(please add|feature request|could product add|can product add)\b/.test(lower)) return null;
 
   const topic = /export/i.test(lower) ? 'exports' : /sso/i.test(lower) ? 'SSO'
     : /integration/i.test(lower) ? 'integration' : /api/i.test(lower) ? 'API'
@@ -108,4 +108,29 @@ export function matchProductDoc(classification, doc) {
       : /currently|available|can /i.test(text) ? 'already_supported' : 'unknown';
   return { status, excerpt: text, heading: candidate.heading || 'Document text',
     url: doc.url, mode: doc.mode, title: doc.title };
+}
+
+const roadmapStatuses = new Set(['shipped', 'in_progress', 'planned', 'deferred', 'declined', 'proposed', 'blocked']);
+
+export function productDecisionContext(text, doc) {
+  if (doc.mode === 'unavailable') return null;
+  const words = value => ` ${value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  const rows = doc.sections.filter(section => /^ROADMAP\s*\|/i.test(section.text));
+  const matched = rows.filter(section => {
+    const aliases = section.text.split('|')[3] || '';
+    return aliases.split(';').some(alias => /[a-z0-9]/i.test(alias) && words(text).includes(words(alias)));
+  });
+  if (matched.length !== 1) return null;
+  const section = matched[0];
+  const fields = section.text.split('|').map(field => field.trim());
+  const [, id, revision, , status, owner, deadline, action, question] = fields;
+  if (fields.length !== 9 || !/^[a-z0-9-]+$/.test(id) || !/^[1-9]\d*$/.test(revision) ||
+      rows.filter(row => row.text.split('|')[1]?.trim() === id).length !== 1 ||
+      !roadmapStatuses.has(status) || !owner || !deadline ||
+      (deadline !== 'TBD' && (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) ||
+        !Number.isFinite(Date.parse(deadline)) || new Date(deadline).toISOString().slice(0, 10) !== deadline)) ||
+      action !== 'founder_review' || !question || question === '-' ||
+      !['proposed', 'blocked', 'in_progress', 'planned'].includes(status)) return null;
+  return { id, revision, status, owner, deadline, question, excerpt: section.text,
+    heading: 'Product roadmap', title: doc.title, url: doc.url, mode: doc.mode };
 }

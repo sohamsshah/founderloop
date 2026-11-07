@@ -4,7 +4,7 @@ const categories = ['PRODUCT', 'REVENUE', 'COMMITMENT'];
 
 export function cheapCandidate(text) {
   return typeof text === 'string' && text.length >= 8 &&
-    /\b(can|could|please|need|request|feature|export|integration|api|dashboard|report|webhook|bug|broken|error|timeout|failing|pricing|price|quote|buy|purchase|procurement|evaluation|trial|demo|contract|enterprise|interested|support|blocked|outage|urgent|cannot|can't|we will|we'll|i will|i'll)\b/i.test(text);
+    /\b(can|could|please|need|request|feature|export|integration|api|dashboard|report|webhook|bug|broken|error|timeout|failing|pricing|price|quote|proposal|buy|purchase|procurement|evaluation|trial|demo|contract|enterprise|interested|support|blocked|outage|data loss|security incident|urgent|cannot|can't|we will|we'll|i will|i'll)\b/i.test(text);
 }
 
 function schema() {

@@ -1,6 +1,6 @@
 # Founder Loop environment setup
 
-Updated 7 November 2026, 12:00 IST. The Product live gate will use the Switch Console-managed local server because it already displays the Slack and Discord connections. The standalone Docker server hosts an earlier custom-agent registration, but its agent and keys cannot access Console-server rooms.
+Updated 7 November 2026, 14:40 IST. The Product live technical journey passed on the standalone Docker server. With founder approval, the Console-managed server was stopped and its Slack/Discord bot credentials were connected to standalone. Do not restart the Console-managed server while standalone is using the same tokens.
 
 ## Already configured and checked
 
@@ -13,14 +13,18 @@ Updated 7 November 2026, 12:00 IST. The Product live gate will use the Switch Co
 
 ## Finish the Product live setup
 
-1. Create a user-owned registration key on the Console-managed server and register the external `founder-loop` agent there. Verify its agent API key and passive socket against `http://127.0.0.1:55571`. Keep the old standalone server separate; do not attach duplicate bot-token consumers.
-2. Verify the existing Slack and Discord connections are healthy. Map the dedicated Discord source and private Slack founder/Product channels to Switch rooms, and invite the new custom agent. Record the real Switch IDs in ignored `.env` using [`.env.example`](../.env.example). Set `SWITCH_SOURCE_ROOM_ID`, `SWITCH_FOUNDER_ROOM_ID`, and `SWITCH_PRODUCT_ROOM_ID`. Sales/Support rooms are unnecessary for the Product-only gate; do not use native channel IDs as Switch room IDs.
-3. Observe a founder-authored message in the mapped founder room. Verify its trusted Switch sender ID and set `FOUNDER_SWITCH_SENDER_ID`; if a native Slack sender ID is exposed, set `FOUNDER_SLACK_USER_ID` too. A display name is insufficient. Record the agent sender ID for echo exclusion.
-4. Send one ordinary, unmentioned Discord test message. Observe the passive `scope=all`, `filter=all` event, including its native guild, channel, and message IDs or a trusted exact-message URL. Check that no bot reply, reaction, or typing indicator appears. If Switch omits native IDs, the app marks the candidate `EVIDENCE_BLOCKED`; do not manufacture a link from a Switch ID.
-5. Open a real card's individual source-message link as the founder. Compare its quote to the original, use one real founder decision, confirm exactly one Product Slack verdict, and observe CLOSED. Record sanitized evidence in [Switch integration](SWITCH_INTEGRATION.md) and [status](STATUS.md). Only then consider Gate A live and shippable.
+1. Use the existing `founder-loop` registration and Gateway on the standalone server (`http://127.0.0.1:18000` API, `http://127.0.0.1:13000` Gateway). Its Slack/Discord connections are active. Keep the Console-managed server stopped to avoid duplicate consumers.
+2. The dedicated Discord source and private Slack founder/Product channels are mapped to three Switch rooms with the custom agent. Actual Switch room IDs are in ignored `.env`; native channel IDs are separate. Sales/Support rooms are unnecessary for Product-only live mode.
+3. The founder-authored Slack event identified a stable Switch sender, recorded in ignored `.env`. The bridge omitted `platform_sender_id`; the app checks the verified Switch identity and founder room, and rejects a conflicting native ID if present.
+4. The observed unmentioned Discord event omitted native IDs. The app now queries the configured Discord channel through the bot API and accepts only a unique exact text/author/channel/time match. Missing or ambiguous evidence remains `EVIDENCE_BLOCKED`.
+5. The founder opened a real individual-message link, sent a COMMENT verdict, and one Product Slack notification reached CLOSED. See [Switch integration](SWITCH_INTEGRATION.md) and [status](STATUS.md). Capture a sanitized 3–5 minute walkthrough before final submission.
 6. For Product Doc access, the current `.env` can read the named public demo Doc with `GOOGLE_DOC_PUBLIC_EXPORT=true`. For a private one-Doc API read, configure `GOOGLE_ACCESS_TOKEN` or a service-account JSON path under ignored `secrets/`, and share that Doc with the API identity. This path needs a live probe.
 7. For Revenue, create one named Google Sheet with the `Leads` tab and columns in [Google integration](GOOGLE_INTEGRATION.md). Set `GOOGLE_REVENUE_SHEET_ID`; authorize the API identity. Enable `ENABLE_SHEET_WRITE=true` only after Editor access and an accepted-write test. Revenue and Commitment live signoff follow Gate A, in that order.
 
-Run `npm test`, `npm run demo:product`, and `npm run demo` for offline verification. Use `node --env-file=.env scripts/probe-switch.js` and `node --env-file=.env scripts/probe-google.js` for the narrow integration probes. `npm run live` starts the passive agent only after room and identity mappings are complete.
+Run `npm test`, `npm run demo:product`, and `npm run demo` for offline verification. Use `node --env-file=.env scripts/probe-switch.js` and `node --env-file=.env scripts/probe-google.js` for the narrow integration probes. `npm run live` starts the passive agent only after room and identity mappings are complete. For the persistent local agent, use `docker compose -f compose.agent.yml up -d --build founder-loop-agent`; it connects to the existing standalone Switch Docker network and uses ignored `.env` and SQLite data.
+
+## Interactive founder buttons
+
+`FL-004` used Slack Block Kit sections but no buttons. The button and modal implementation passes local tests and awaits a live test. Create a second app from [`slack-founder-app-manifest.json`](../slack-founder-app-manifest.json) in the **same Slack workspace**. Install it, create an app-level token with `connections:write`, and invite its bot to private `#founder-loop-founder`. Set `SLACK_FOUNDER_APP_TOKEN=xapp-...` and `SLACK_FOUNDER_BOT_TOKEN=xoxb-...` in the ignored `.env`; never put tokens in a commit or chat. Restart the agent container with the Compose command above. A separate app is necessary because Slack may route each Socket Mode payload to any connection for one app; the existing Agent Switch app is already consumed by the Switch bridge. The new app subscribes to no channel events and only handles its own interactive cards. `SLACK_WORKSPACE_ID` is an optional extra identity check.
 
 No secret values, live source-message IDs, or unverified permalink claims belong in committed docs or screenshots.

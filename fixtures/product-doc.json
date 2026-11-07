@@ -3,6 +3,7 @@
   "title": "Founder Loop sample roadmap",
   "sections": [
     {"heading":"Roadmap / Next / Exports","text":"Scheduled exports are under consideration and have not been estimated."},
-    {"heading":"Current features","text":"Users can export reports manually."}
+    {"heading":"Current features","text":"Users can export reports manually."},
+    {"heading":"Roadmap","text":"ROADMAP | scheduled-exports | 1 | scheduled exports; schedule exports; automatic CSV exports | proposed | Product | TBD | founder_review | Should Product scope scheduled exports for the next milestone?"}
   ]
 }

@@ -1,0 +1,24 @@
+{
+  "display_information": {
+    "name": "Founder Loop Decisions",
+    "description": "Private founder decision cards for Founder Loop"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Founder Loop",
+      "always_online": false
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": ["chat:write"]
+    }
+  },
+  "settings": {
+    "interactivity": {
+      "is_enabled": true
+    },
+    "socket_mode_enabled": true,
+    "token_rotation_enabled": false
+  }
+}

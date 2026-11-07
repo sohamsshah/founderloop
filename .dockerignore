@@ -1,0 +1,11 @@
+.env
+.switch/
+data/
+secrets/
+node_modules/
+.git/
+docs/
+test/
+*.sqlite
+*.sqlite-*
+*.log
