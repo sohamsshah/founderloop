@@ -1,6 +1,6 @@
 # Founder Loop v3 status
 
-Updated: 7 November 2026, 10:24 IST.
+Updated: 7 November 2026, 10:33 IST.
 
 The user authorized building all three category workflows now and deferring the live channel test. This implementation is a structured Node.js app with a single Switch agent process; the v3 specification excludes a standalone dashboard, so there is no React UI. **No live gate is signed off.** The release remains the last fully proven scope, currently the labeled fixture demo.
 
@@ -15,6 +15,7 @@ The user authorized building all three category workflows now and deferring the 
 ## Observed integration evidence
 
 - `npm test` on 7 November: **28/28 pass**. `npm run demo:product`: one simulated founder card, one simulated Product verdict, CLOSED. `npm run demo`: all three categories and a multi-category source run, all simulated cards CLOSED. These use `fixture://` provenance markers, not real message links. Optional structured model classification has mock coverage; no live model request was made.
+- `npm run live` was attempted on 7 November and stopped at configuration validation before any network connection or posting. Missing variables were `SWITCH_SOURCE_ROOM_ID`/`SWITCH_SOURCE_ROOM_IDS`, `SWITCH_FOUNDER_ROOM_ID`, `SWITCH_PRODUCT_ROOM_ID`, `SWITCH_SALES_ROOM_ID`, `SWITCH_SUPPORT_ROOM_ID`, and `FOUNDER_SWITCH_SENDER_ID`. The existing local agent credentials were not missing.
 - Standalone Switch 0.31.0 Compose API `/health` and Gateway responded HTTP 200. The custom `founder-loop` agent ID/key are in ignored local files. Authenticated `GET /agents/{id}/ops` passed earlier. On 7 November, the new `scripts/probe-switch.js` authenticated over the documented WebSocket, received `connection_state` with `filter=all`, then received `ping` and sent `pong`. It covered **zero rooms**. No passive message or outbound post was tested.
 - Slack bot `auth.test` passed and its team ID matched the supplied workspace ID. Slack app token `apps.connections.open` passed. Discord bot `/users/@me` passed. Discord `/guilds/{id}` returned HTTP 403 with Discord code `40333` (`internal network error`), so guild access remains unverified. These are direct credential checks, not Switch bridge evidence.
 - The user supplied an empty Google Doc and authorized filling it. It was populated with a **clearly labeled demo reference**, renamed “Founder Loop Product Intelligence — Demo Reference,” and Google Docs showed **Saved to Drive**. The Doc is configured in ignored `.env`. An unauthenticated public text export returned HTTP 200; the app's `scripts/probe-google.js` read 16 nonempty lines and matched the exports statement as `not_planned` with an exact excerpt. This is a **live read of a public Doc export**, not OAuth Google Docs API access or a real company roadmap. No Google Sheet exists in the app config.
