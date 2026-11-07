@@ -1,4 +1,6 @@
 export function readConfig(env = process.env) {
+  const enabledCategories = (env.FOUNDER_LOOP_ENABLED_CATEGORIES || 'PRODUCT')
+    .split(',').map(value => value.trim().toUpperCase()).filter(Boolean);
   const sourceRoomIds = (env.SWITCH_SOURCE_ROOM_IDS || env.SWITCH_SOURCE_ROOM_ID || '')
     .split(',').map(value => value.trim()).filter(Boolean);
   let sourcePlatforms = {};
@@ -30,13 +32,20 @@ export function readConfig(env = process.env) {
     llmApiKey: env.OPENAI_API_KEY,
     llmModel: env.OPENAI_MODEL,
     minConfidence: env.MIN_SIGNAL_CONFIDENCE ? Number(env.MIN_SIGNAL_CONFIDENCE) : 0.65,
+    enabledCategories,
     sourceMode: 'live',
   };
 }
 
 export function validateLive(config) {
-  const required = ['baseUrl', 'agentId', 'agentKey', 'founderRoomId', 'productRoomId',
-    'salesRoomId', 'supportRoomId', 'founderSenderId'];
+  const categories = config.enabledCategories || ['PRODUCT'];
+  if (!categories.length || categories.some(category => !['PRODUCT', 'REVENUE', 'COMMITMENT'].includes(category))) {
+    throw new Error('FOUNDER_LOOP_ENABLED_CATEGORIES must list PRODUCT, REVENUE, or COMMITMENT');
+  }
+  const required = ['baseUrl', 'agentId', 'agentKey', 'founderRoomId', 'founderSenderId'];
+  if (categories.includes('PRODUCT')) required.push('productRoomId');
+  if (categories.includes('REVENUE')) required.push('salesRoomId');
+  if (categories.includes('COMMITMENT')) required.push('supportRoomId');
   const missing = required.filter(key => !config[key]);
   if (!config.sourceRoomIds.length) missing.push('sourceRoomIds');
   if (missing.length) throw new Error(`Missing live configuration: ${missing.join(', ')}`);

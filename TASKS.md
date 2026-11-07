@@ -20,6 +20,8 @@ Regular, unmentioned message in an authorized Discord (or supported customer Sla
 
 ## Gate A — PRODUCT INTELLIGENCE: first SHIPPABLE vertical slice
 
+Execute the detailed live setup, test, and evidence steps in [`docs/PRODUCT_E2E_CHECKLIST.md`](docs/PRODUCT_E2E_CHECKLIST.md) in order. Its checked starting-state items do not change the live gate status below.
+
 - [x] **T04 — Product relevance detection [P0].** Product-only candidate filtering and structured model output (request, bug, limitation, not relevant), with evidence pointing to original source event. **AC:** test feature message classified, ordinary chatter ignored; no model-written 'original' quote.
 - [ ] **T05 — Single Google Doc product context [P0].** Read one authorized Google Doc, extract title/section/exact supporting excerpt, compare supported/planned/not_planned/unknown; handle source-unavailable honestly. **AC:** response cites real Doc/link and original customer message separately; no engineering Slack crawling. A labeled snapshot is allowed when Google API unavailable.
 - [ ] **T06 — Product founder card with citation [P0].** Create stable `FL-xxx` card in founder-only Slack, showing original quote **verbatim**, source platform/channel/author/time, clickable **exact source message** permalink, separate AI assessment, linked Google Doc context and commands. **AC:** inspect Slack rendering, link opens actual source message, no bot activity in Discord, repeated same event creates no extra card. Missing deep link -> `EVIDENCE_BLOCKED` and **no** standard card.
@@ -52,10 +54,10 @@ No scheduled digest, reminder, deadlines, ongoing commitment progress, team memb
 
 Codex may choose implementation details, but **must not** weaken exact source citation, real/fixture honesty, founder authorization or end-to-end correctness. If a Google API or live Switch permission blocks development, mark that integration BLOCKED and continue with clearly labeled fixtures against the same interface. **At 17:00 IST, freeze new feature development** and work only on tests, demonstration, and submission. If already later, ship the earliest passing gate rather than starting another unfinished agent.
 
-## Current execution ledger — 7 Nov 2026, 10:24 IST
+## Current execution ledger — 7 Nov 2026, 12:00 IST
 
 - T00 PASS: this folder is now an independent Git repository; `.env`, `.switch/`, `secrets/`, SQLite, and dependencies are ignored.
-- T01 PARTIAL: standalone Switch health, agent ops authentication, WebSocket `connection_state` with `filter=all`, and ping/pong passed. Zero rooms are mapped; no passive inbound or outbound Slack event was observed.
+- T01 PARTIAL: standalone Switch health, agent ops authentication, WebSocket `connection_state` with `filter=all`, and ping/pong passed. Four private Slack channels and one Discord source channel were created, and the identified founder was invited to all four Slack channels. Switch Console's separate local server is running at `127.0.0.1:55571` and displays its existing Slack and Discord connections; it is now the chosen Product test server. The external custom agent is not yet registered there. No passive inbound or outbound Slack event was observed.
 - T02 BLOCKED live: published generic message event does not guarantee native Discord IDs. Missing IDs produce `EVIDENCE_BLOCKED`; no live exact-message link was clicked.
 - T03 PASS offline: SQLite inbox, evidence, decision, outbox, replay, founder authorization, and WebSocket client implemented.
 - T04 PASS offline: cheap candidate filtering, optional structured model classification with literal source-excerpt validation, and heuristic fallback. The model path is mock-tested; no key or live model result is claimed.
@@ -69,7 +71,7 @@ Codex may choose implementation details, but **must not** weaken exact source ci
 - T10 PASS offline, BLOCKED live: customer issue versus explicit company promise distinguished; no owner/deadline tracking.
 - T11 PASS offline, BLOCKED live: Support verdict and CLOSED tested; no live Support notification.
 - CHECKPOINT C: all-category fixture can demonstrate Commitment, but live gate is BLOCKED pending previous live gates.
-- T12 PARTIAL: 28/28 automated tests pass, including replay, missing IDs, Slack threaded permalink input, founder identity, Sheet write retry and interrupted-write uncertainty, and ambiguous transport. Live source access/silence and exact-link click remain untested.
+- T12 PARTIAL: 30/30 automated tests pass, including Product-only live configuration, replay, missing IDs, Slack threaded permalink input, founder identity, Sheet write retry and interrupted-write uncertainty, and ambiguous transport. Live source access/silence and exact-link click remain untested.
 - T13 PARTIAL: README, demo, status, and integration docs are being refreshed. No live screenshot/video proof exists.
 - RELEASE SIGNOFF: **not yet**. The last honest demo checkpoint is explicitly simulated Product, Revenue, and Commitment; no live gate may be claimed PASS.
 
