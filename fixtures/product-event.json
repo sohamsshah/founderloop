@@ -1,0 +1,13 @@
+{
+  "source_mode": "simulated",
+  "platform": "discord",
+  "switch_room_id": "fixture-source-room",
+  "platform_guild_id": "fixture-guild",
+  "platform_channel_id": "fixture-feature-requests",
+  "platform_message_id": "fixture-product-001",
+  "channel_name": "feature-requests",
+  "sender_id": "fixture-customer-001",
+  "sender_name": "sample-customer",
+  "timestamp": "2026-11-07T01:00:00+05:30",
+  "text": "Can we schedule exports automatically? We need this for our daily workflow."
+}

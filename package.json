@@ -1,0 +1,17 @@
+{
+  "name": "founder-loop-v3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo": "node src/cli.js demo",
+    "demo:product": "node src/cli.js demo product",
+    "test": "node --test",
+    "live": "node --env-file=.env src/cli.js live"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "ws": "^8.22.1"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "mode": "simulated",
+  "title": "Founder Loop sample roadmap",
+  "sections": [
+    {"heading":"Roadmap / Next / Exports","text":"Scheduled exports are under consideration and have not been estimated."},
+    {"heading":"Current features","text":"Users can export reports manually."}
+  ]
+}

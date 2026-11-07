@@ -1,0 +1,8 @@
+data/
+.env
+.switch/
+node_modules/
+secrets/
+*.sqlite
+*.sqlite-*
+*.log

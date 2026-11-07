@@ -1,0 +1,22 @@
+=== SIMULATED FIXTURE REPLAY: no live Switch, Discord, Slack, Google Doc or Sheet ===
+
+Founder card in simulated #founder-loop:
+[SIMULATED FIXTURE] FL-001 · PRODUCT · exports request
+SOURCE: discord #feature-requests · sample-customer · 2026-11-07T01:00:00+05:30
+ORIGINAL MESSAGE (verbatim):
+“Can we schedule exports automatically? We need this for our daily workflow.”
+VIEW ORIGINAL: fixture://discord/fixture-guild/fixture-feature-requests/fixture-product-001 (simulated, not a live permalink)
+PRODUCT KNOWLEDGE: Founder Loop sample roadmap — Roadmap / Next / Exports (planned; simulated)
+GOOGLE DOC: no live document link (simulated snapshot)
+DOCUMENT EXCERPT (verbatim):
+“Scheduled exports are under consideration and have not been estimated.”
+AI ASSESSMENT (heuristic, not a quote): Customer requests exports. Founder should decide whether Product should evaluate it.
+DECIDE: FL-001 ACCEPT | FL-001 REJECT | FL-001 COMMENT <text>
+Decision: CLOSED
+Internal verdict in simulated fixture-product-room:
+[SIMULATED FIXTURE] FL-001 · PRODUCT · ACCEPT
+ORIGINAL (verbatim): “Can we schedule exports automatically? We need this for our daily workflow.”
+SOURCE: fixture://discord/fixture-guild/fixture-feature-requests/fixture-product-001 (simulated, not a live permalink)
+FOUNDER COMMENT: none
+
+Cards: 1; outbound posts: 2; all closed: true

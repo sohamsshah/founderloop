@@ -1,0 +1,72 @@
+=== SIMULATED FIXTURE REPLAY: no live Switch, Discord, Slack, Google Doc or Sheet ===
+
+Founder card in simulated #founder-loop:
+[SIMULATED FIXTURE] FL-001 · PRODUCT · exports request
+SOURCE: discord #feature-requests · sample-customer · 2026-11-07T01:00:00+05:30
+ORIGINAL MESSAGE (verbatim):
+“Can we schedule exports automatically? We need this for our daily workflow.”
+VIEW ORIGINAL: fixture://discord/fixture-guild/fixture-feature-requests/fixture-product-001 (simulated, not a live permalink)
+PRODUCT KNOWLEDGE: Founder Loop sample roadmap — Roadmap / Next / Exports (planned; simulated)
+GOOGLE DOC: no live document link (simulated snapshot)
+DOCUMENT EXCERPT (verbatim):
+“Scheduled exports are under consideration and have not been estimated.”
+AI ASSESSMENT (heuristic, not a quote): Customer requests exports. Founder should decide whether Product should evaluate it.
+DECIDE: FL-001 ACCEPT | FL-001 REJECT | FL-001 COMMENT <text>
+Decision: CLOSED
+Internal verdict in simulated fixture-product-room:
+[SIMULATED FIXTURE] FL-001 · PRODUCT · ACCEPT
+ORIGINAL (verbatim): “Can we schedule exports automatically? We need this for our daily workflow.”
+SOURCE: fixture://discord/fixture-guild/fixture-feature-requests/fixture-product-001 (simulated, not a live permalink)
+FOUNDER COMMENT: none
+
+Founder card in simulated #founder-loop:
+[SIMULATED FIXTURE] FL-002 · REVENUE · SSO evaluation buying_signal
+SOURCE: discord #feature-requests · Prospect · 2026-11-07T01:00:00+05:30
+ORIGINAL MESSAGE (verbatim):
+“Could we schedule an enterprise evaluation and get pricing for SSO?”
+VIEW ORIGINAL: fixture://discord/fixture-guild/fixture-feature-requests/fixture-revenue-001 (simulated, not a live permalink)
+LEAD SHEET: new (simulated)
+GOOGLE SHEET: no live Sheet link
+AI ASSESSMENT (heuristic, not a quote): This message contains a possible buying signal. The founder should decide whether Sales should act.
+DECIDE: FL-002 ACCEPT | FL-002 REJECT | FL-002 COMMENT <text>
+Decision: CLOSED
+Internal verdict in simulated fixture-sales-room:
+[SIMULATED FIXTURE] FL-002 · REVENUE · REJECT
+ORIGINAL (verbatim): “Could we schedule an enterprise evaluation and get pricing for SSO?”
+SOURCE: fixture://discord/fixture-guild/fixture-feature-requests/fixture-revenue-001 (simulated, not a live permalink)
+FOUNDER COMMENT: none
+
+Founder card in simulated #founder-loop:
+[SIMULATED FIXTURE] FL-003 · PRODUCT · product issue bug
+SOURCE: discord #feature-requests · Customer · 2026-11-07T01:00:00+05:30
+ORIGINAL MESSAGE (verbatim):
+“Our login is broken and we cannot access the product. Please help.”
+VIEW ORIGINAL: fixture://discord/fixture-guild/fixture-feature-requests/fixture-commitment-001 (simulated, not a live permalink)
+PRODUCT KNOWLEDGE: Founder Loop sample roadmap — no matching section (unknown; simulated)
+GOOGLE DOC: no live document link (simulated snapshot)
+AI ASSESSMENT (heuristic, not a quote): Customer reports a product issue problem. Founder should decide whether Product should investigate.
+DECIDE: FL-003 ACCEPT | FL-003 REJECT | FL-003 COMMENT <text>
+Decision: CLOSED
+Internal verdict in simulated fixture-product-room:
+[SIMULATED FIXTURE] FL-003 · PRODUCT · ACCEPT
+ORIGINAL (verbatim): “Our login is broken and we cannot access the product. Please help.”
+SOURCE: fixture://discord/fixture-guild/fixture-feature-requests/fixture-commitment-001 (simulated, not a live permalink)
+FOUNDER COMMENT: none
+
+Founder card in simulated #founder-loop:
+[SIMULATED FIXTURE] FL-004 · COMMITMENT · customer issue customer_issue_only
+SOURCE: discord #feature-requests · Customer · 2026-11-07T01:00:00+05:30
+ORIGINAL MESSAGE (verbatim):
+“Our login is broken and we cannot access the product. Please help.”
+VIEW ORIGINAL: fixture://discord/fixture-guild/fixture-feature-requests/fixture-commitment-001 (simulated, not a live permalink)
+COMMITMENT TYPE: customer_issue_only. No owner, deadline, or outcome is inferred.
+AI ASSESSMENT (heuristic, not a quote): The original message reports a customer-facing issue. No company promise is inferred.
+DECIDE: FL-004 ACCEPT | FL-004 REJECT | FL-004 COMMENT <text>
+Decision: CLOSED
+Internal verdict in simulated fixture-support-room:
+[SIMULATED FIXTURE] FL-004 · COMMITMENT · COMMENT
+ORIGINAL (verbatim): “Our login is broken and we cannot access the product. Please help.”
+SOURCE: fixture://discord/fixture-guild/fixture-feature-requests/fixture-commitment-001 (simulated, not a live permalink)
+FOUNDER COMMENT: Please review this issue
+
+Cards: 4; outbound posts: 8; all closed: true
