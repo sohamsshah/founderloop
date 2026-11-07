@@ -10,6 +10,7 @@ import {FixtureTransport,SwitchTransport,closedFounderMessage,founderBlocks} fro
 import {AmbiguousDeliveryError} from '../src/transport.js';
 import {exactMessageLink,normalizeEvent,resolveMessageLink} from '../src/evidence.js';
 import {classifyProduct,loadProductDoc} from '../src/product.js';
+import {renderFounderCard,renderVerdict} from '../src/messages.js';
 import {authorizedAction,handleSlackInteraction,SlackInteractionConnection} from '../src/slack-interactions.js';
 import {validateLive} from '../src/config.js';
 
@@ -59,6 +60,33 @@ test('interactive founder card has decision buttons and comment action',async()=
   await transport.post('founder',body,'card:5');
   assert.equal(requests[0].options.headers.authorization,'Bearer founder-bot-token');
   assert.equal(JSON.parse(requests[0].options.body).blocks.at(-1).type,'actions');
+});
+
+test('compact Slack cards and verdicts hide internal IDs while retaining evidence and buttons',async()=>{
+  const roomId='fa6a670a-1e0e-40f4-9976-9b69db9608b7';
+  const event={...fixture,source_mode:'live',switch_room_id:roomId,channel_name:roomId};
+  const card={id:11,category:'PRODUCT',title:'reports request',assessment:'Customer requests reports.'};
+  const context={id:'dashboard-reporting',question:'Approve a dashboard pilot?',status:'proposed',owner:'Product'};
+  const link='https://discord.com/channels/123/456/789';
+  const requests=[];
+  const transport=new SwitchTransport({baseUrl:'http://switch:8000',agentId:'agent',agentKey:'secret',
+    founderRoomId:'founder',slackFounderChannelId:'CFOUNDER',slackFounderBotToken:'bot',slackFounderAppToken:'app'},
+  async (url,options)=>{requests.push(JSON.parse(options.body));return {ok:true,status:200,json:async()=>({ok:true,ts:'123.456'})};});
+  const body=renderFounderCard(card,event,context,link);
+  await transport.post('founder',body,'card:11');
+  const [open]=requests;
+  assert.equal(open.blocks[0].text.text,'📦 Product · Dashboard reporting');
+  assert.ok(open.blocks.some(block=>block.text?.text?.includes(link)));
+  assert.doesNotMatch(open.text,/FL-011|fa6a670a|Decide in Slack/);
+  assert.ok(open.blocks.at(-1).elements.every(action=>action.value==='11'));
+  assert.match(body,/FL-011 ACCEPT/);
+  await transport.closeFounderMessage('123.456',body);
+  assert.doesNotMatch(requests[1].text,/FL-011|fa6a670a/);
+  assert.equal(requests[1].blocks.at(-1).text.text,'🎉 Decision made. Loop closed');
+  const verdict=renderVerdict(card,event,link,{verdict:'ACCEPT'},context);
+  assert.match(verdict,/^✅ Accepted · Product/);
+  assert.match(verdict,/https:\/\/discord\.com\/channels\/123\/456\/789/);
+  assert.doesNotMatch(verdict,/FL-011|fa6a670a/);
 });
 
 test('closed founder card keeps evidence and replaces controls with a completion message',()=>{
@@ -180,7 +208,7 @@ test('Product fixture completes cited founder decision and one internal handoff'
   assert.equal(first.status,'CARD_DELIVERED');
   assert.equal(transport.posts.length,1);
   assert.equal(transport.posts[0].destination,config.founderRoomId);
-  assert.match(transport.posts[0].body,/ORIGINAL MESSAGE \(verbatim\):\n“Can we schedule exports automatically\?/);
+  assert.match(transport.posts[0].body,/Original message\*\n> Can we schedule exports automatically\?/);
   assert.match(transport.posts[0].body,/fixture:\/\/discord\/fixture-guild\/fixture-feature-requests\/fixture-product-001/);
   assert.match(transport.posts[0].body,/Should Product scope scheduled exports for the next milestone/);
   assert.match(transport.posts[0].body,/simulated snapshot/);
@@ -201,7 +229,7 @@ test('REJECT and COMMENT are immutable final decisions',async()=>{
     const {store,transport,loop}=make();
     const first=await loop.ingest(fixture);
     assert.equal((await loop.decide(command(first.card.id,verdict))).status,'CLOSED');
-    assert.match(transport.posts[1].body,new RegExp(verdict.split(' ')[0]));
+    assert.match(transport.posts[1].body,verdict === 'REJECT' ? /Rejected · Product/ : /Commented · Product/);
     if(verdict.startsWith('COMMENT')) assert.match(transport.posts[1].body,/Please check next sprint/);
     assert.equal(store.decision(first.card.id).verdict,verdict.split(' ')[0]);
     store.close();
@@ -375,9 +403,9 @@ test('special characters stay verbatim in storage and are escaped only in Slack 
   const card=(await loop.ingest(event)).card;
   const stored=store.getEvent(card.source_key);
   assert.equal(stored.source_text,text);
-  assert.match(transport.posts[0].body,/&lt;Acme&gt; &amp; team\?\nPlease keep “daily” exact/);
+  assert.match(transport.posts[0].body,/&lt;Acme&gt; &amp; team\?\n> Please keep “daily” exact/);
   await loop.decide(command(card.id,'ACCEPT'));
-  assert.match(transport.posts[1].body,/&lt;Acme&gt; &amp; team\?\nPlease keep “daily” exact/);
+  assert.match(transport.posts[1].body,/&lt;Acme&gt; &amp; team\?\n> Please keep “daily” exact/);
   store.close();
 });
 

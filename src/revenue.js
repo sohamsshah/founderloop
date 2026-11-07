@@ -144,6 +144,7 @@ export function classifyRevenue(text) {
 
 export function revenueNeedsDecision(text, context, classification, source) {
   if (urgentRevenueSignal(text, classification, source)) return true;
+  if (source && !context.matchedLeadId && classification?.kind === 'buying_signal') return true;
   if (source && !context.pipeline) return false;
   if (context.pipeline) {
     if (context.status === 'new') return classification?.kind === 'buying_signal' && source === 'discord';

@@ -1,19 +1,30 @@
 # Founder Loop demo script
 
-## Repeatable offline walkthrough (3–5 minutes)
+## Record a 3–5 minute walkthrough
 
-1. State: “This is a simulated message replay through the same app pipeline. The `fixture://` markers are not live Discord permalinks, and the printed posts are not actual Slack messages.”
-2. Run `npm test` and show the final passing count. Run `npm run demo:product` first to preserve the independently demoable Product slice. Point out the unchanged original customer sentence, separate heuristic assessment, simulated Doc excerpt, ACCEPT command, one Product verdict, and CLOSED state.
-3. Run `npm run demo`. Show the Revenue card's Sheet status and Sales verdict, then the Commitment issue card and Support verdict. One support source also yields a Product card, proving separate category routes without merging quotes.
-4. Open `docs/STATUS.md`. Explain the actual live Product proof: unmentioned Discord message, exact Discord API citation opened by the founder, demo Doc `public_export`, one private founder Slack message, founder COMMENT, one Product verdict, and CLOSED. State that Revenue/Commitment, private Docs API, Leads Sheet, and always-on hosting remain unverified.
-5. Show the negative tests: missing native IDs block a card, unauthorized founder commands do not route, replay does not duplicate, and ambiguous outbound delivery is held for reconciliation.
+Use the verified local cards below as the default recording path. This avoids depending on a fresh roadmap edit or event delivery during recording. Use only demo data. Crop other channels, account identifiers and private conversations from the capture.
 
-## Live sequence after setup
+| Time | Show | Say |
+| --- | --- | --- |
+| 0:00–0:20 | An ordinary Discord post and the Slack founder inbox | “Founder Loop listens through Switch. The customer writes normally. The founder sees only signals that meet the review rules.” |
+| 0:20–1:45 | Product `FL-011`. Open the exact Discord source link, show the demo roadmap context, then show the closed founder card and the single Product verdict. Use the earlier Product `FL-006` decision if you want to explain the Comment modal. | “The roadmap sets what deserves a decision. A shipped item stayed quiet and a follow-up attached to the existing review. The team receives the founder’s decision with the same source link.” |
+| 1:45–2:35 | Revenue `FL-012` and the fictional Leads workbook. Show the matching account, USD 24,000 opportunity value, USD 2,000 MRR, and the private Sales verdict. Optionally show `FL-013` as an example of urgent CSM intake. | “The Sheet supplies recorded account data. An urgent renewal risk can reach the founder from a plain Slack message without a lead ID.” |
+| 2:35–3:10 | Commitment `FL-010` from Slack `#support-alerts` and its verdict in `#founder-loop-support`. | “A customer outage goes through the same review flow and lands in Support after the founder decides.” |
+| 3:10–3:45 | Terminal with `npm run demo` ending in four closed cards, then the README. | “The judge replay also shows General handling a request to meet the founder. The live integration shown earlier runs on standalone Switch and uses fictional Google context.” |
 
-1. In a mapped Discord source channel, post an ordinary message without mentioning the bot. Observe that it produces no reply, reaction, or typing indicator.
-2. Inspect the sanitized Switch event. The observed event omits native Discord IDs. The bot API must find exactly one message matching text, author, configured channel, and time, then construct the individual-message permalink. If no unique match exists, show `EVIDENCE_BLOCKED` and stop the live card claim. Open the resulting exact-message link as the founder.
-3. Compare Product context with the named Google Doc. Describe its mode accurately: `public_export` for the demo Doc or `live` for an authenticated Docs API read.
-4. In the private Slack founder room, open the exact source link. If the dedicated founder Slack app is connected, click Accept or Reject, or click Comment and submit the input modal, from the configured founder account. Otherwise use the actual card ID shown in the live founder message, for example `FL-<actual ID> ACCEPT`, `FL-<actual ID> REJECT`, or `FL-<actual ID> COMMENT <text>`. Show one Product notification, same exact source link, and CLOSED. Label the button/modal route live only after its click is observed.
-5. Replay the source event and founder command; show no additional notification. Only then sign off live Gate A. Repeat Revenue and Commitment with their own Sheet/channel evidence.
+If you want a fresh button click on camera, use an existing eligible card that is still open and for which you intend to record a real verdict. Otherwise show the verified closed state. A Product request can create a fresh card when it is a concrete new request, or when it matches an unused roadmap revision marked `founder_review`. The demo roadmap currently holds its sample rows.
 
-Do not capture secrets or private message bodies in screenshots. Do not call any fixture integration “live.”
+## Credential-free fallback
+
+Run these from the project root with Node.js 22.22.0.
+
+```sh
+npm ci
+npm test
+npm run demo:product
+npm run demo
+```
+
+Show the Product decision first, then Sales, Support, and General. Point out the original quote, separate assessment, category context and internal handoff. The Product replay ends with one card and two simulated posts. The full replay ends with four cards, eight simulated posts and `all closed: true`. Describe the `fixture://` links as simulated citation markers. The terminal output does not post messages.
+
+Before uploading, check that the recording shows the source and verdict clearly, excludes secrets and unrelated messages, and opens for a signed-out viewer.

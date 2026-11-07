@@ -38,8 +38,8 @@ test('Revenue fixture creates one cited card, routes one verdict to Sales, and c
   const first = await loop.ingest(revenue);
   assert.equal(first.status, 'CARD_DELIVERED');
   assert.equal(first.card.category, 'REVENUE');
-  assert.match(transport.posts[0].body, /ORIGINAL MESSAGE \(verbatim\):\n“We are interested/);
-  assert.match(transport.posts[0].body, /LEAD SHEET: new \(simulated\)/);
+  assert.match(transport.posts[0].body, /Original message\*\n> We are interested/);
+  assert.match(transport.posts[0].body, /No verified account match\nSimulated Leads sheet/);
   assert.equal((await loop.decide(command(first.card, 'REJECT', config))).status, 'CLOSED');
   assert.equal(transport.posts[1].destination, 'sales');
   assert.match(transport.posts[1].body, /fixture:\/\/discord\/fixture-guild/);
@@ -88,7 +88,7 @@ test('authoritative Revenue rows group Discord, Sales, CSM and Support by decisi
     assert.equal((await ingest('sales-intake', 'routine', 'Lead ID: ACME-001. Sent the weekly update.')).status, 'NO_SIGNAL');
     const first = await ingest(discord, 'external', 'Could we get an enterprise quote?');
     assert.equal(first.status, 'CARD_DELIVERED');
-    assert.match(transport.posts[0].body, /Opportunity value: USD 12000.*Current MRR: USD 600/);
+    assert.match(transport.posts[0].body, /USD 12,000 opportunity.*USD 600 MRR/);
     assert.match(transport.posts[0].body, /Approve an exception to retain the account/);
     assert.doesNotMatch(transport.posts[0].body, /private note/);
     for (const [room, text] of [
@@ -103,7 +103,7 @@ test('authoritative Revenue rows group Discord, Sales, CSM and Support by decisi
     loop.config.enableSheetWrite = true;
     loop.sheetWriter = async () => assert.fail('Authoritative sheet must not be written');
     assert.equal((await loop.decide(command(first.card, 'ACCEPT'))).status, 'CLOSED');
-    assert.match(transport.posts[1].body, /SHEET WRITE: READ_ONLY/);
+    assert.match(transport.posts[1].body, /Leads sheet · Read only/);
     assert.equal(transport.posts[1].destination, 'sales');
     row.decision_status = 'hold';
     row.decision_revision = '2';
@@ -147,14 +147,15 @@ test('urgent CSM signals bypass hold and missing IDs without borrowing ambiguous
   try {
     assert.equal((await ingest('routine', 'Northwind has some renewal risk.')).status, 'NO_FOUNDER_DECISION');
     assert.equal((await ingest('urgent', 'Churn rate super high for northwind')).status, 'CARD_DELIVERED');
-    assert.match(transport.posts[0].body, /REVENUE ESCALATION.*\nREVENUE CONTEXT:.*Current MRR: USD 500/);
+    assert.match(transport.posts[0].body, /Urgent renewal risk/);
+    assert.match(transport.posts[0].body, /USD 500 MRR/);
     assert.equal((await ingest('follow-up', 'Northwind will not renew.')).status, 'GROUPED');
     assert.equal((await ingest('discount', 'Northwind may not renew. Can we approve a renewal discount?')).status, 'GROUPED');
     rows.push({ ...northwind, lead_id: 'OTHER', company: 'Northwind Labs', current_mrr: '900' });
     const ambiguous = 'Northwind needs founder approval today for a discount.';
     assert.equal((await ingest('ambiguous', ambiguous)).status, 'CARD_DELIVERED');
-    assert.match(transport.posts[1].body, /no verified account match/);
-    assert.doesNotMatch(transport.posts[1].body, /Current MRR/);
+    assert.match(transport.posts[1].body, /No verified account match/);
+    assert.doesNotMatch(transport.posts[1].body, /\bMRR\b/);
     assert.equal((await ingest('duplicate', ambiguous)).status, 'GROUPED');
   } finally {
     store.close();
@@ -189,7 +190,7 @@ test('Commitment issue and explicit promise are distinguished; verdict only reac
   const card = (await loop.ingest(issue)).card;
   assert.equal((await loop.decide(command(card, 'COMMENT Please review', config))).status, 'CLOSED');
   assert.equal(transport.posts[1].destination, 'support');
-  assert.match(transport.posts[1].body, /FOUNDER COMMENT: Please review/);
+  assert.match(transport.posts[1].body, /Founder comment\*\nPlease review/);
   assert.equal(transport.posts.length, 2);
   store.close();
 });
@@ -223,6 +224,68 @@ test('One source may create Product and Commitment cards with separate destinati
   store.close();
 });
 
+test('the incident fallback routes outages, breakage and compromise from Slack and Discord', async () => {
+  const discord = base.switch_room_id;
+  const { store, transport, loop, config } = create({
+    sourceRoomIds: [discord, 'support-alerts'], enabledCategories: ['PRODUCT', 'REVENUE', 'COMMITMENT'],
+    sourceCategories: { [discord]: ['PRODUCT', 'REVENUE', 'COMMITMENT'], 'support-alerts': ['COMMITMENT', 'REVENUE'] },
+    revenueSources: { [discord]: 'discord', 'support-alerts': 'csm' },
+  });
+  const incidents = [
+    ['support-alerts', 'slack', 'App is down!!!!'],
+    [discord, 'discord', 'APP IS DOWN!!!'],
+    [discord, 'discord', 'Urgent - payment gateway down'],
+    [discord, 'discord', 'Urgent - signin down'],
+    ['support-alerts', 'slack', 'Image preview worker unreachable.'],
+    ['support-alerts', 'slack', 'Someone hacked our account.'],
+    [discord, 'discord', 'Need to contact founder on urgent basis for security leak issue'],
+    [discord, 'discord', 'Search is not working.'],
+    [discord, 'discord', 'Down!'],
+  ];
+  for (const [i, [room, platform, text]] of incidents.entries()) {
+    const event = { ...base, switch_room_id: room, platform, platform_message_id: `outage-${i}`, text };
+    const result = await loop.ingest(event);
+    assert.equal(result.status, 'CARD_DELIVERED');
+    assert.equal(result.card.category, 'COMMITMENT');
+    assert.equal(result.card.classification_method, 'heuristic');
+    assert.match(transport.posts.at(-1).body, /Commitment · Reported incident/);
+    assert.ok(transport.posts.at(-1).body.includes(text));
+    assert.equal((await loop.ingest(event)).status, 'DUPLICATE');
+    assert.equal((await loop.decide(command(result.card, 'ACCEPT', config))).status, 'CLOSED');
+    assert.equal(transport.posts.at(-1).destination, config.supportRoomId);
+  }
+  for (const [i, text] of ['Is the app down?', 'App is down?', 'App is down for planned maintenance.', 'App is down to one worker.', 'Payment gateway down for scheduled maintenance.', 'Sign-in is down for planned maintenance.'].entries()) {
+    const result = await loop.ingest({ ...base, platform_message_id: `non-outage-${i}`, text });
+    assert.equal(result.status, 'NO_SIGNAL');
+  }
+  assert.equal(transport.posts.length, incidents.length * 2);
+  store.close();
+});
+
+test('semantic incident intake reviews messages before keyword filtering and honors a model dismissal', async () => {
+  const room = base.switch_room_id;
+  const { store, transport, loop } = create({
+    enabledCategories: ['COMMITMENT'], sourceCategories: { [room]: ['COMMITMENT'] },
+    llmApiKey: 'test-key', llmModel: 'test-model',
+  });
+  const seen = [];
+  loop.classifier = (text, config) => classifyCandidate(text, config, async (_, options) => {
+    const { input } = JSON.parse(options.body);
+    assert.match(input[0].content, /active_incident/);
+    seen.push(input[1].content);
+    return { ok: true, json: async () => ({ output_text: JSON.stringify({ signals: text === '503' ? [{
+      category: 'COMMITMENT', kind: 'active_incident', confidence: 0.5,
+      topic: 'server failure', assessment: 'The sender is reporting a server failure.', evidence_excerpt: '503',
+    }] : [] }) }) };
+  });
+  assert.equal((await loop.ingest({ ...base, platform_message_id: 'metric', text: 'Sales are down this week.' })).status, 'NO_SIGNAL');
+  assert.equal((await loop.ingest({ ...base, platform_message_id: 'terse', text: '503' })).status, 'CARD_DELIVERED');
+  assert.deepEqual(seen, ['Sales are down this week.', '503']);
+  assert.match(transport.posts[0].body, /Reported incident/);
+  assert.equal(store.listCards()[0].classification_method, 'model');
+  store.close();
+});
+
 test('founder channel only receives actionable roadmap, buying, and support signals', async () => {
   const { store, transport, loop } = create();
   const roadmap = { mode: 'simulated', title: 'Roadmap', sections: [
@@ -234,19 +297,46 @@ test('founder channel only receives actionable roadmap, buying, and support sign
   const ingest = (id, text) => loop.ingest({ ...base, platform_message_id: id, text });
   assert.equal((await ingest('hold', 'Could Product add manual exports?')).status, 'NO_FOUNDER_DECISION');
   assert.equal((await ingest('proposed-hold', 'Could Product add dashboard reporting?')).status, 'NO_FOUNDER_DECISION');
-  assert.equal((await ingest('unknown', 'Could Product add new dashboard widgets?')).status, 'NO_FOUNDER_DECISION');
   assert.equal((await ingest('review', 'Could Product add scheduled exports?')).status, 'CARD_DELIVERED');
   assert.equal((await ingest('repeat', 'We need scheduled exports.')).status, 'GROUPED');
-  assert.match(transport.posts[0].body, /ROADMAP DEADLINE: 2026-12-01/);
+  assert.match(transport.posts[0].body, /Target: 2026-12-01/);
   assert.equal((await ingest('pricing', 'Could we get pricing?')).status, 'NO_FOUNDER_DECISION');
   loop.sheetLoader = async () => ({ mode: 'simulated', rows: [
     { lead_id: 'L1', platform: base.platform, platform_user_id: base.platform_sender_id || base.sender_id, stage: 'active' },
   ] });
   assert.equal((await ingest('existing', 'Could we get an enterprise quote?')).status, 'NO_FOUNDER_DECISION');
-  assert.equal((await ingest('routine', 'The help page is not working. Can support check?')).status, 'NO_FOUNDER_DECISION');
+  assert.equal((await ingest('routine', 'The help page could use clearer wording. Can support check?')).status, 'NO_FOUNDER_DECISION');
   assert.equal((await ingest('promise', "We'll restore access by Friday.")).status, 'CARD_DELIVERED');
-  assert.match(transport.posts[1].body, /PROMISED DEADLINE \(verbatim\): “by Friday”/);
-  assert.equal(transport.posts.length, 2);
+  assert.match(transport.posts[1].body, /Promised timing\*\n“by Friday”/);
+  assert.equal((await ingest('unknown', 'Could Product add new dashboard widgets?')).status, 'CARD_DELIVERED');
+  assert.match(transport.posts.at(-1).body, /Unreviewed request/);
+  assert.equal(transport.posts.length, 3);
+  store.close();
+});
+
+test('founder requests close privately, while buying intent stays in Revenue', async () => {
+  const room = base.switch_room_id;
+  const { store, transport, loop, config } = create({
+    enabledCategories: ['GENERAL', 'REVENUE'],
+    sourceCategories: { [room]: ['GENERAL', 'REVENUE'] }, revenueSources: { [room]: 'sales' },
+  });
+  loop.sheetLoader = async () => ({ mode: 'unavailable', rows: [] });
+  const ingest = (id, text) => loop.ingest({ ...base, platform_message_id: id, text });
+  assert.equal((await ingest('mention', 'The founder joined the town hall.')).status, 'NO_SIGNAL');
+  const meeting = await ingest('meeting', 'I want to set up a meeting with the founder.');
+  assert.equal(meeting.status, 'CARD_DELIVERED');
+  assert.equal(meeting.card.category, 'GENERAL');
+  assert.match(transport.posts.at(-1).body, /General · Founder follow-up/);
+  assert.equal((await ingest('repeat', 'I want to set up a meeting with the founder.')).status, 'GROUPED');
+  assert.equal((await loop.decide(command(meeting.card, 'ACCEPT', config))).status, 'CLOSED');
+  assert.equal(transport.posts.at(-1).destination, config.founderRoomId);
+  const direct = await ingest('direct', 'Contact me with founder or else I will file a case in court');
+  assert.equal(direct.status, 'CARD_DELIVERED');
+  assert.equal(direct.card.category, 'GENERAL');
+  const buying = await ingest('buying', 'Could we get an enterprise quote and speak to the founder?');
+  assert.equal(buying.status, 'CARD_DELIVERED');
+  assert.equal(buying.card.category, 'REVENUE');
+  assert.equal(store.listCards().length, 3);
   store.close();
 });
 

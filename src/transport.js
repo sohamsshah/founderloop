@@ -10,27 +10,36 @@ export class FixtureTransport {
 
 export class AmbiguousDeliveryError extends Error {}
 
-export function closedFounderMessage(body) {
-  return `${body.replace(/\nDECIDE: FL-\d+ ACCEPT \| FL-\d+ REJECT \| FL-\d+ COMMENT <text>\s*$/, '')}\n🎉 Decision made. Loop closed`;
+function withoutDecisionCommands(body) {
+  return body.replace(/\n\nDecide in Slack\n`FL-\d+ ACCEPT` · `FL-\d+ REJECT` · `FL-\d+ COMMENT &lt;text&gt;`$/, '')
+    .replace(/\nDECIDE: FL-\d+ ACCEPT \| FL-\d+ REJECT \| FL-\d+ COMMENT <text>\s*$/, '');
 }
 
-export function founderBlocks(body, interactive = false) {
-  const parts = body.split(/\n(?=SOURCE:|ORIGINAL MESSAGE|VIEW ORIGINAL:|PRODUCT KNOWLEDGE:|ROADMAP DECISION:|ROADMAP OWNER:|ROADMAP DEADLINE:|GOOGLE DOC:|DOCUMENT EXCERPT|LEAD SHEET:|REVENUE CONTEXT:|REVENUE ESCALATION:|GOOGLE SHEET:|COMMITMENT TYPE:|PROMISED DEADLINE|AI ASSESSMENT|DECIDE:|🎉 Decision made)/);
+export function closedFounderMessage(body) {
+  return `${withoutDecisionCommands(body)}\n\n🎉 Decision made. Loop closed`;
+}
+
+export function founderBlocks(body, interactive = false, cardId) {
+  const compact = /^(?:\[SIMULATED FIXTURE\] )?(?:📦|💰|🛟|🤝) /.test(body);
+  const parts = compact ? body.split('\n\n') :
+    body.split(/\n(?=SOURCE:|ORIGINAL MESSAGE|VIEW ORIGINAL:|PRODUCT KNOWLEDGE:|ROADMAP DECISION:|ROADMAP OWNER:|ROADMAP DEADLINE:|GOOGLE DOC:|DOCUMENT EXCERPT|LEAD SHEET:|REVENUE CONTEXT:|REVENUE ESCALATION:|GOOGLE SHEET:|COMMITMENT TYPE:|PROMISED DEADLINE|AI ASSESSMENT|DECIDE:|🎉 Decision made)/);
   const title = parts.shift() || 'Founder Loop decision';
   const header = title.replace(/^\[(?:LIVE|SIMULATED FIXTURE)\]\s*/, '').slice(0, 150);
   if (parts.some(part => part.length > 3000)) throw new Error('Founder card section exceeds Slack Block Kit limit');
   const blocks = [
     { type: 'header', text: { type: 'plain_text', text: header } },
-    { type: 'context', elements: [{ type: 'mrkdwn', text: 'Founder Loop · evidence-backed decision' }] },
-    { type: 'divider' },
+    ...(!compact ? [
+      { type: 'context', elements: [{ type: 'mrkdwn', text: 'Founder Loop · evidence-backed decision' }] },
+      { type: 'divider' },
+    ] : []),
     ...parts.map(part => {
-      const label = /^([^:\n]+):/.exec(part)?.[1];
+      const label = !compact && /^([^:\n]+):/.exec(part)?.[1];
       const text = label ? `*${label}:*${part.slice(label.length + 1)}` : part;
       return { type: 'section', text: { type: 'mrkdwn', text } };
     }),
   ];
   if (interactive) {
-    const id = /\bFL-(\d+)\b/.exec(title)?.[1];
+    const id = cardId || /\bFL-(\d+)\b/.exec(title)?.[1];
     if (!id) throw new Error('Founder card ID missing for interactive actions');
     blocks.push({ type: 'actions', elements: [
       { type: 'button', action_id: 'founder_accept', value: id,
@@ -69,14 +78,16 @@ export class SwitchTransport {
     if (!baseUrl || !agentId || !agentKey) throw new Error('Switch agent configuration missing');
     if (key?.startsWith('card:') && destination === this.config.founderRoomId &&
         (this.config.slackFounderBotToken || this.config.slackBotToken) && this.config.slackFounderChannelId) {
-      let response;
       const interactive = Boolean(this.config.slackFounderAppToken && this.config.slackFounderBotToken);
+      const text = interactive ? withoutDecisionCommands(body) : body;
+      const blocks = founderBlocks(text, interactive, key.slice('card:'.length));
+      let response;
       try {
         response = await this.fetcher('https://slack.com/api/chat.postMessage', {
           method: 'POST',
           headers: { authorization: `Bearer ${this.config.slackFounderBotToken || this.config.slackBotToken}`, 'content-type': 'application/json' },
-          body: JSON.stringify({ channel: this.config.slackFounderChannelId, text: body,
-            blocks: founderBlocks(body, interactive), unfurl_links: false, unfurl_media: false }),
+          body: JSON.stringify({ channel: this.config.slackFounderChannelId, text,
+            blocks, unfurl_links: false, unfurl_media: false }),
           signal: AbortSignal.timeout(12000),
         });
       } catch (error) {

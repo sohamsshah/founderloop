@@ -37,7 +37,7 @@ export async function handleSlackInteraction(payload, { config, store, loop, fet
         body: JSON.stringify({ trigger_id: payload.trigger_id, view: {
           type: 'modal', callback_id: 'founder_comment_submit',
           private_metadata: JSON.stringify({ cardId: id, messageTs: payload.message.ts }),
-          title: { type: 'plain_text', text: `FL-${String(id).padStart(3, '0')} comment` },
+          title: { type: 'plain_text', text: 'Add a comment' },
           submit: { type: 'plain_text', text: 'Send comment' },
           close: { type: 'plain_text', text: 'Cancel' },
           blocks: [{ type: 'input', block_id: 'comment',

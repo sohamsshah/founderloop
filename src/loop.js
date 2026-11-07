@@ -1,66 +1,12 @@
 import { createHash } from 'node:crypto';
-import { escapeSlack, normalizeEvent, resolveMessageLink, sourceText, validSource } from './evidence.js';
+import { normalizeEvent, resolveMessageLink, validSource } from './evidence.js';
 import { classifySignals, commitmentDecisionContext } from './classify.js';
 import { classifyCandidate } from './model-classifier.js';
 import { loadProductDoc, productDecisionContext } from './product.js';
 import { classifyRevenue, leadGroupKey, loadRevenueSheet, matchRevenueSheet, revenueNeedsDecision, upsertAcceptedLead, urgentRevenueSignal } from './revenue.js';
 import { AmbiguousDeliveryError } from './transport.js';
-
-const label = id => `FL-${String(id).padStart(3, '0')}`;
-const safe = escapeSlack;
-
-function citation(link, text = 'View exact original message') {
-  return link.startsWith('fixture:') ? `${link} (simulated, not a live permalink)` : `<${link}|${text}>`;
-}
-
-function contextLines(card, context) {
-  if (card.category === 'PRODUCT') {
-    if (context.mode === 'unavailable') return 'PRODUCT KNOWLEDGE: unavailable';
-    return `PRODUCT KNOWLEDGE: ${safe(context.title)} — ${safe(context.heading || 'no matching section')} (${safe(context.status)}; ${safe(context.mode)})` +
-      (context.question ? `\nROADMAP DECISION: ${safe(context.question)}\nROADMAP OWNER: ${safe(context.owner)}\nROADMAP DEADLINE: ${safe(context.deadline)}` : '') +
-      (context.url ? `\nGOOGLE DOC: <${context.url}|Open document>` : '\nGOOGLE DOC: no live document link (simulated snapshot)') +
-      (context.excerpt ? `\nDOCUMENT EXCERPT (verbatim):\n“${safe(context.excerpt)}”` : '');
-  }
-  if (card.category === 'REVENUE') {
-    const match = context.matchedLeadId ? `; matched lead ${safe(context.matchedLeadId)} in row ${context.matchedRow}` : '';
-    const status = context.urgent && !context.matchedLeadId ? 'no verified account match' : context.status;
-    return `LEAD SHEET: ${safe(status)} (${safe(context.mode)}${match})` +
-      (context.urgent ? '\nREVENUE ESCALATION: Urgent commercial signal reported in the source message.' : '') +
-      (context.pipeline && context.status === 'existing' ? '\nREVENUE CONTEXT: ' + [
-        ['Account', context.company], ['Stage', context.stage], ['Owner', context.owner],
-        ['Opportunity value', context.opportunityValue && [context.currency, context.opportunityValue].filter(Boolean).join(' ')],
-        ['Current MRR', context.currentMrr && [context.currency, context.currentMrr].filter(Boolean).join(' ')],
-        ['Renewal', context.renewalDate], ['Next step', context.nextStep], ['Decision', context.question],
-      ].filter(([, value]) => value).map(([label, value]) => `${label}: ${safe(value.slice(0, 240))}`).join(' · ') : '') +
-      (context.url ? `\nGOOGLE SHEET: <${context.url}|Open Leads sheet>` : '\nGOOGLE SHEET: no live Sheet link');
-  }
-  return `COMMITMENT TYPE: ${safe(context.kind)}` +
-    (context.deadline ? `\nPROMISED DEADLINE (verbatim): “${safe(context.deadline)}”` : '');
-}
-
-export function renderFounderCard(card, event, context, link, evidence = []) {
-  const mode = event.source_mode === 'simulated' ? '[SIMULATED FIXTURE] ' : '[LIVE] ';
-  const source = `${safe(event.platform)} #${safe(event.channel_name)} · ${safe(event.sender_name)} · ${safe(event.timestamp)}`;
-  const supporting = evidence.filter(item => item.source_key !== card.source_key).slice(0, 2)
-    .map(item => `\nSUPPORTING ORIGINAL (verbatim excerpt): “${safe(item.quote.slice(0, 320))}”\nVIEW SUPPORTING: ${citation(item.permalink)}`).join('');
-  return `${mode}${label(card.id)} · ${card.category} · ${safe(card.title)}\nSOURCE: ${source}\n` +
-    `ORIGINAL MESSAGE (verbatim${event.text.length > 1200 ? ' excerpt' : ''}):\n“${safe(sourceText(event))}”\n` +
-    `VIEW ORIGINAL: ${citation(link)}${supporting}\n${contextLines(card, context)}\n` +
-    `AI ASSESSMENT (${safe(card.classification_method)}, not a quote): ${safe(card.assessment)}\n` +
-    `DECIDE: ${label(card.id)} ACCEPT | ${label(card.id)} REJECT | ${label(card.id)} COMMENT <text>`;
-}
-
-export function renderVerdict(card, event, link, decision, context) {
-  const mode = event.source_mode === 'simulated' ? '[SIMULATED FIXTURE] ' : '[LIVE] ';
-  const quote = sourceText(event, 320);
-  const sheet = card.category === 'REVENUE' && decision.sheetState
-    ? `\nSHEET WRITE: ${safe(decision.sheetState)}` : '';
-  return `${mode}${label(card.id)} · ${card.category} · ${decision.verdict}\n` +
-    `ORIGINAL (verbatim${event.text.length > 320 ? ' excerpt' : ''}): “${safe(quote)}”\n` +
-    `SOURCE: ${citation(link, 'Exact original message')}\n` +
-    `FOUNDER COMMENT: ${decision.comment ? safe(decision.comment) : 'none'}${sheet}` +
-    (card.category === 'REVENUE' && context.pipeline ? `\n${contextLines(card, context)}` : '');
-}
+import { renderFounderCard, renderVerdict } from './messages.js';
+import { reviewUrgentRevenue } from './claude-review.js';
 
 export class FounderLoop {
   constructor({ store, transport, config, docLoader = loadProductDoc, sheetLoader = loadRevenueSheet,
@@ -79,22 +25,30 @@ export class FounderLoop {
     if (!prior) this.store.addEvent(key, event, link);
     const roomCategories = this.config.sourceCategories?.[event.switch_room_id];
     const revenueSource = this.config.revenueSources?.[event.switch_room_id];
-    const signals = roomCategories?.length === 1 && ['COMMITMENT', 'REVENUE'].includes(roomCategories[0])
-      ? classifySignals(event.text) : await this.classifier(event.text, this.config);
+    const enabled = category => (!roomCategories || roomCategories.includes(category)) &&
+      (!this.config.enabledCategories || this.config.enabledCategories.includes(category));
+    const signals = roomCategories?.length === 1 && roomCategories[0] === 'REVENUE'
+      ? classifySignals(event.text) : await this.classifier(event.text, {
+        ...this.config, incidentIntake: enabled('COMMITMENT'), generalIntake: enabled('GENERAL'),
+      });
     if (revenueSource) {
       const signal = classifyRevenue(event.text);
       const index = signals.findIndex(item => item.category === 'REVENUE');
-      if (index >= 0) signals.splice(index, 1);
+      if (index >= 0 && (signal || signals[index].method !== 'model')) signals.splice(index, 1);
       if (signal) signals.push(signal);
     }
     const categories = signals.filter(item =>
-      item.confidence >= (this.config.minConfidence ?? 0.65) &&
-      (!this.config.enabledCategories || this.config.enabledCategories.includes(item.category)) &&
-      (!roomCategories || roomCategories.includes(item.category)));
+      ((item.category === 'COMMITMENT' && item.kind === 'active_incident') ||
+        (item.category === 'GENERAL' && item.kind === 'founder_request') || item.confidence >= (this.config.minConfidence ?? 0.65)) &&
+      enabled(item.category));
     if (!categories.length) return { status: 'NO_SIGNAL' };
 
     const results = [];
-    for (const classification of categories) {
+    const ordered = [...categories.filter(item => item.category !== 'GENERAL'), ...categories.filter(item => item.category === 'GENERAL')];
+    const day = event.timestamp.slice(0, 10);
+    const fingerprint = () => createHash('sha256').update(event.text.trim().toLowerCase().replace(/\s+/g, ' ')).digest('hex');
+    for (const classification of ordered) {
+      if (classification.category === 'GENERAL' && results.some(item => item.card)) continue;
       const legacyGroup = classification.category === 'REVENUE' && !revenueSource ? leadGroupKey(event, classification)
         : `${key}:${classification.category}`;
       let groupKey = legacyGroup;
@@ -102,8 +56,8 @@ export class FounderLoop {
       let context;
       if (!existing && link) {
         if (classification.category === 'PRODUCT') {
-          context = productDecisionContext(event.text, await this.docLoader(this.config));
-          if (context) groupKey = `PRODUCT:${context.id}:${context.revision}`;
+          context = productDecisionContext(event.text, await this.docLoader(this.config), classification);
+          if (context) groupKey = context.id ? `PRODUCT:${context.id}:${context.revision}` : `PRODUCT:unreviewed:${day}:${fingerprint()}`;
         } else if (classification.category === 'REVENUE') {
           context = matchRevenueSheet(event, classification, await this.sheetLoader(this.config), revenueSource);
           context.sourceRef = link;
@@ -111,18 +65,18 @@ export class FounderLoop {
           if (context.matchedLeadId) {
             groupKey = `REVENUE:lead:${context.matchedLeadId}${context.pipeline ? `:${context.revision}` : ''}`;
           } else if (context.urgent) {
-            const fingerprint = createHash('sha256').update(event.text.toLowerCase().replace(/\s+/g, ' ').trim()).digest('hex');
-            groupKey = `REVENUE:urgent:${event.timestamp.slice(0, 10)}:${fingerprint}`;
+            groupKey = `REVENUE:urgent:${day}:${fingerprint()}`;
+          } else if (revenueSource === 'sales' || revenueSource === 'csm') {
+            groupKey = `REVENUE:intake:${event.switch_room_id}:${day}:${fingerprint()}`;
           } else {
             groupKey = `REVENUE:sender:${event.platform}:${event.platform_sender_id || event.sender_id}`;
           }
+        } else if (classification.category === 'COMMITMENT') {
+          context = commitmentDecisionContext(event, this.config, classification);
+          if (context) groupKey = `COMMITMENT:${event.switch_room_id}:${event.sender_id}:${day}:${fingerprint()}`;
         } else {
-          context = commitmentDecisionContext(event, this.config);
-          if (context) {
-            const normalized = event.text.trim().toLowerCase().replace(/\s+/g, ' ');
-            const fingerprint = createHash('sha256').update(normalized).digest('hex');
-            groupKey = `COMMITMENT:${event.switch_room_id}:${event.sender_id}:${event.timestamp.slice(0, 10)}:${fingerprint}`;
-          }
+          context = { question: 'Should the founder follow up on this request?' };
+          groupKey = `GENERAL:${event.platform}:${event.platform_sender_id || event.sender_id}:${day}:${fingerprint()}`;
         }
         existing = this.store.getCardByGroup(groupKey);
         if (!existing && (!context || (classification.category === 'REVENUE' && !revenueNeedsDecision(event.text, context, classification, revenueSource)))) {
@@ -141,10 +95,15 @@ export class FounderLoop {
         continue;
       }
 
+      if (classification.category === 'REVENUE' && context.urgent && event.source_mode === 'live' && this.config.claudeRevenueReview) {
+        const question = await reviewUrgentRevenue(event, context, this.config.claudeCodeExecutable).catch(() => null);
+        if (question) context.claudeReviewQuestion = question;
+      }
+
       const reviewed = classification.category === 'COMMITMENT' ? {
         ...classification, kind: context.kind,
-        topic: context.deadline ? 'time-bound promise' : 'customer impact',
-        assessment: context.deadline ? 'A configured staff sender explicitly promised action by the quoted deadline.'
+        topic: context.incident ? 'reported incident' : context.kind === 'explicit_company_promise' ? 'company promise' : 'customer impact',
+        assessment: context.incident ? classification.assessment : context.kind === 'explicit_company_promise' ? 'A trusted sender explicitly promised action in the source message.'
           : 'The source reports a customer impact that needs review.',
       } : classification;
       const card = this.store.transaction(() => {
@@ -229,7 +188,7 @@ export class FounderLoop {
     const event = JSON.parse(eventRow.source_json);
     const decision = this.store.decision(card.id);
     const destination = ({ PRODUCT: this.config.productRoomId, REVENUE: this.config.salesRoomId,
-      COMMITMENT: this.config.supportRoomId })[card.category];
+      COMMITMENT: this.config.supportRoomId, GENERAL: this.config.founderRoomId })[card.category];
     this.store.addOutbox(`verdict:${card.id}`, card.id, 'INTERNAL_VERDICT', destination,
       renderVerdict(card, event, eventRow.permalink,
         { ...decision, sheetState: decision.sheet_state }, JSON.parse(card.context_json)));
@@ -247,9 +206,13 @@ export class FounderLoop {
       this.store.setCardState(id, 'DECIDED');
     } else if (item.kind === 'INTERNAL_VERDICT') {
       this.store.setCardState(id, 'CLOSED');
-      const { founder_message_ref: ts } = this.store.getCard(id);
+      const card = this.store.getCard(id);
+      const { founder_message_ref: ts } = card;
       if (this.config.slackFounderBotToken && this.config.slackFounderChannelId && /^\d+\.\d+$/.test(ts)) {
-        this.store.addOutbox(`close:${id}`, id, 'CLOSE_CARD', ts, this.store.getOutbox(`card:${id}`).body);
+        const source = this.store.getEvent(card.source_key);
+        const body = renderFounderCard(card, JSON.parse(source.source_json), JSON.parse(card.context_json),
+          source.permalink, this.store.getEvidence(id));
+        this.store.addOutbox(`close:${id}`, id, 'CLOSE_CARD', ts, body);
       }
     }
   }

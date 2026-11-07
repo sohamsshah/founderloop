@@ -112,14 +112,18 @@ export function matchProductDoc(classification, doc) {
 
 const roadmapStatuses = new Set(['shipped', 'in_progress', 'planned', 'deferred', 'declined', 'proposed', 'blocked']);
 
-export function productDecisionContext(text, doc) {
-  if (doc.mode === 'unavailable') return null;
+export function productDecisionContext(text, doc, classification) {
   const words = value => ` ${value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
-  const rows = doc.sections.filter(section => /^ROADMAP\s*\|/i.test(section.text));
+  const rows = (doc.sections || []).filter(section => /^ROADMAP\s*\|/i.test(section.text));
   const matched = rows.filter(section => {
     const aliases = section.text.split('|')[3] || '';
     return aliases.split(';').some(alias => /[a-z0-9]/i.test(alias) && words(text).includes(words(alias)));
   });
+  if (!matched.length && (/(?:\b(?:can|could|should) product\b|\bfeature request\b|\bplease add\b)/i.test(text) ||
+      (classification?.method === 'model' && classification.kind === 'request'))) {
+    return { mode: doc.mode, title: doc.title, url: doc.url, status: 'unreviewed request',
+      question: 'Should Product evaluate this request?' };
+  }
   if (matched.length !== 1) return null;
   const section = matched[0];
   const fields = section.text.split('|').map(field => field.trim());

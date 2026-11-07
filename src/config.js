@@ -82,6 +82,8 @@ export function readConfig(env = process.env) {
     commitmentStaffIds: (env.COMMITMENT_STAFF_IDS || '').split(',').map(id => id.trim()).filter(Boolean),
     llmApiKey: env.OPENAI_API_KEY,
     llmModel: env.OPENAI_MODEL,
+    claudeRevenueReview: env.FOUNDER_LOOP_CLAUDE_REVIEW === 'true',
+    claudeCodeExecutable: env.CLAUDE_CODE_EXECUTABLE || undefined,
     minConfidence: env.MIN_SIGNAL_CONFIDENCE ? Number(env.MIN_SIGNAL_CONFIDENCE) : 0.65,
     enabledCategories,
     sourceMode: 'live',
@@ -90,8 +92,8 @@ export function readConfig(env = process.env) {
 
 export function validateLive(config) {
   const categories = config.enabledCategories || ['PRODUCT'];
-  if (!categories.length || categories.some(category => !['PRODUCT', 'REVENUE', 'COMMITMENT'].includes(category))) {
-    throw new Error('FOUNDER_LOOP_ENABLED_CATEGORIES must list PRODUCT, REVENUE, or COMMITMENT');
+  if (!categories.length || categories.some(category => !['PRODUCT', 'REVENUE', 'COMMITMENT', 'GENERAL'].includes(category))) {
+    throw new Error('FOUNDER_LOOP_ENABLED_CATEGORIES must list PRODUCT, REVENUE, COMMITMENT, or GENERAL');
   }
   const required = ['baseUrl', 'agentId', 'agentKey', 'founderRoomId', 'founderSenderId'];
   if (categories.includes('PRODUCT')) required.push('productRoomId');

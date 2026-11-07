@@ -1,6 +1,7 @@
 # FOUNDER LOOP v3 — VERTICAL-SLICE SHIPPING CHECKLIST
 
-**Hard deadline:** Saturday 7 Nov 2026, 19:00 IST; target submitted by 18:45 IST.  
+**Hard deadline:** Saturday 7 Nov 2026, before 23:59 IST. See [release status](docs/STATUS.md) for the current gate evidence.
+
 **Primary release rule:** a single **complete Product-only** workflow is better than three partially implemented agents. Preserve a working demo and automated smoke test after **every** gate.  
 **Authority:** This file + `CODEX_HANDOFF.md` v3 override earlier task numbering, plans, and flow diagrams where inconsistent.  
 **Progress values:** `[ ] TODO`, `[x] PASS`, `BLOCKED`, `SKIPPED`. Codex updates `docs/STATUS.md` with proof and blockers, not just claimed completion.
@@ -44,7 +45,7 @@ Execute the detailed live setup, test, and evidence steps in [`docs/PRODUCT_E2E_
 
 - [ ] **T12 — Essential negative tests [P0].** Replayed messages, missing/invalid message IDs, wrong-source link, Slack thread reply permalink, quotes with formatting and line breaks, duplicate lead, repeated founder command, wrong actor/room, bot echoes, Google unavailable, outbound failure/retry, prompt-injection in customer text, source private-channel access. **AC:** tests prove no invented citations, no messages to source channel and no duplicate verdicts.
 - [ ] **T13 — Submission/demo package [P0].** README, env/setup guide, `docs/STATUS.md`, `docs/SWITCH_INTEGRATION.md`, Google Doc/Sheet setup, 3–5 minute demo script beginning with Product-only flow, sanitized screenshot/video, final blurb, fixture vs live labels. **AC:** repeatable demonstration without relying on unfinished gates.
-- [ ] **RELEASE SIGNOFF.** List gates as PASS/BLOCKED/SKIPPED. Confirm clickable source message link (manually checked), literal original message text, separate AI assessment, authenticated founder verdict, one correct internally routed post, CLOSED state. Submit passing scope only by 18:45 IST.
+- [ ] **RELEASE SIGNOFF.** List gates as PASS/BLOCKED/SKIPPED. Confirm clickable source message link (manually checked), literal original message text, separate AI assessment, authenticated founder verdict, one correct internally routed post, CLOSED state. Attach the sanitized recording and submit before 23:59 IST.
 
 ## Not in scope (do NOT create tasks)
 
@@ -54,28 +55,6 @@ No scheduled digest, reminder, deadlines, ongoing commitment progress, team memb
 
 Codex may choose implementation details, but **must not** weaken exact source citation, real/fixture honesty, founder authorization or end-to-end correctness. If a Google API or live Switch permission blocks development, mark that integration BLOCKED and continue with clearly labeled fixtures against the same interface. **At 17:00 IST, freeze new feature development** and work only on tests, demonstration, and submission. If already later, ship the earliest passing gate rather than starting another unfinished agent.
 
-## Current Product checkpoint — 7 Nov 2026, 14:40 IST
+## Submission evidence
 
-`FL-003` completed a fresh unmentioned Discord → standalone Switch → cited private founder Slack message → verified founder COMMENT → one Product Slack verdict → CLOSED journey. The founder opened the exact Discord link. SQLite has one immutable decision and two acknowledged outbound entries; replaying source and decision created no duplicates. `FL-004` delivered a Block Kit layout and later CLOSED on a verified founder REJECT text command. A dedicated Slack app then connected for interactive cards: `FL-005` CLOSED from an Accept button click, and `FL-006` CLOSED from a Comment modal submission; each had one acknowledged Product verdict. Closed interactive cards `FL-005`–`FL-007` were edited to remove buttons and show the requested completion text. A fresh `FL-008` Accept action automatically removed its buttons, displayed the completion text, and sent one Product verdict, all verified by direct Slack reads. The named Product Doc was a clearly labeled demo read by `public_export`, and 40/40 tests pass. The founder skipped a live Reject button click. Sanitized demo capture, deployed hosting, private Docs API, and real company roadmap content remain open.
-
-## Historical execution ledger — 7 Nov 2026, 12:00 IST
-
-- T00 PASS: this folder is now an independent Git repository; `.env`, `.switch/`, `secrets/`, SQLite, and dependencies are ignored.
-- T01 PARTIAL: standalone Switch health, agent ops authentication, WebSocket `connection_state` with `filter=all`, and ping/pong passed. Four private Slack channels and one Discord source channel were created, and the identified founder was invited to all four Slack channels. Switch Console's separate local server is running at `127.0.0.1:55571` and displays its existing Slack and Discord connections; it is now the chosen Product test server. The external custom agent is not yet registered there. No passive inbound or outbound Slack event was observed.
-- T02 BLOCKED live: published generic message event does not guarantee native Discord IDs. Missing IDs produce `EVIDENCE_BLOCKED`; no live exact-message link was clicked.
-- T03 PASS offline: SQLite inbox, evidence, decision, outbox, replay, founder authorization, and WebSocket client implemented.
-- T04 PASS offline: cheap candidate filtering, optional structured model classification with literal source-excerpt validation, and heuristic fallback. The model path is mock-tested; no key or live model result is claimed.
-- T05 PARTIAL live: user-supplied Google Doc was filled with clearly labeled demo reference content and saved. Public text export HTTP 200; app read 16 nonempty lines and matched a verbatim excerpt. OAuth Docs API access remains unverified.
-- T06 PASS fixture, BLOCKED live: source quote and citation render correctly in simulated founder cards; no live clickable source link or Slack card observed.
-- T07 PASS fixture, BLOCKED live: all three founder verdicts, authorization, one Product notification, and CLOSED tested; no live Product handoff observed.
-- CHECKPOINT A: Product-only fixture demo and automated tests PASS; live shippable gate BLOCKED.
-- T08 PASS offline, BLOCKED live: Revenue classifier, one-Sheet adapter, safe existing/possible/new match, stable prospect grouping, exact citation; no actual Sheet read.
-- T09 PASS offline, BLOCKED live: Sales verdict and accepted Sheet upsert with failed-write retry tested; no actual Sheet write or Sales notification.
-- CHECKPOINT B: all-category fixture can demonstrate Revenue, but live gate is BLOCKED pending Gate A and Sheet/room evidence.
-- T10 PASS offline, BLOCKED live: customer issue versus explicit company promise distinguished; no owner/deadline tracking.
-- T11 PASS offline, BLOCKED live: Support verdict and CLOSED tested; no live Support notification.
-- CHECKPOINT C: all-category fixture can demonstrate Commitment, but live gate is BLOCKED pending previous live gates.
-- T12 PARTIAL: 30/30 automated tests pass, including Product-only live configuration, replay, missing IDs, Slack threaded permalink input, founder identity, Sheet write retry and interrupted-write uncertainty, and ambiguous transport. Live source access/silence and exact-link click remain untested.
-- T13 PARTIAL: README, demo, status, and integration docs are being refreshed. No live screenshot/video proof exists.
-- RELEASE SIGNOFF: **not yet**. The last honest demo checkpoint is explicitly simulated Product, Revenue, and Commitment; no live gate may be claimed PASS.
-
+See [release status](docs/STATUS.md) for the verified Product, Revenue, Commitment, and General workflows. Use the [demo script](docs/DEMO_SCRIPT.md) to reproduce the walkthrough.

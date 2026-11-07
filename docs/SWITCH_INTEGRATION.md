@@ -27,21 +27,12 @@ For Discord, the observed Switch event had `sender`, `sender_name`, `message_id`
 
 Even a correctly formed link may be inaccessible to the founder. A live Gate A signoff requires a founder account to click one actual source link and verify the individual message, exact quote, author, channel, and time.
 
-## Live setup and test still required
+## Live setup and verification
 
 1. Check the Discord bot is invited to the supplied server and has the permissions and intents in [Switch's Discord setup guide](https://docs.switchagents.ai/switch-rooms/deploy/messaging-apps/discord). Connect it to the **standalone** Switch server.
 2. Connect the Slack app to the standalone server using the bot token, app-level token, and workspace ID in ignored `.env`, following [Switch's Slack setup guide](https://docs.switchagents.ai/switch-rooms/deploy/messaging-apps/slack).
 3. Map the source channel and private founder/Product/Sales/Support Slack channels to Switch rooms, add the custom agent, and record their Switch room IDs in `.env`. Verify `FOUNDER_SWITCH_SENDER_ID` from an actual founder message and optionally `FOUNDER_SLACK_USER_ID` from trusted native metadata.
 4. Send an ordinary unmentioned Discord message. Capture only a **sanitized** event shape, note its native ID fields, confirm no source-channel reply/reaction/typing, and test a founder-accessible exact-message permalink.
 5. Observe a real founder card, one authenticated decision, one correctly routed internal Slack notification, and CLOSED. Repeat/replay to check duplicates.
-
-## Mattermost customer intake
-
-Mattermost is another source for the same Product decision flow. The customer posts an ordinary, unmentioned message. Switch delivers it to the agent through its Mattermost bridge. A qualifying roadmap request produces a decision card in the existing private Slack founder channel, and a decision sends one verdict to the configured Product room.
-
-1. Connect Mattermost to the standalone Switch server with its admin account and team slug. Add the `founder-loop` agent to the dedicated customer channel and record both the native channel ID and the Switch room ID. Follow the [Switch Mattermost setup guide](https://docs.switchagents.ai/switch-rooms/deploy/messaging-apps/mattermost).
-2. Append the new Switch room ID to `SWITCH_SOURCE_ROOM_IDS`. Add it as `"mattermost"` in `SWITCH_SOURCE_PLATFORMS` and as `["PRODUCT"]` in `SWITCH_SOURCE_CATEGORIES`. Map the Switch room ID to its native channel ID in `MATTERMOST_SOURCE_CHANNELS`.
-3. Set `MATTERMOST_URL` to the URL the agent can reach, `MATTERMOST_PUBLIC_URL` to the URL the founder opens, and `MATTERMOST_TEAM` to the team slug. Use a dedicated non-admin channel member's token in `MATTERMOST_READ_TOKEN`. The agent only uses it for GET requests to verify the post and author. With the existing local Docker network attachment, the API URL is `http://mattermost:8065` and the browser URL on this machine is `http://127.0.0.1:55572`.
-4. Rebuild the agent and verify that it covers the added room with `filter=all`. Send one ordinary request that matches a roadmap row marked `founder_review`. Open the exact Mattermost post link from the Slack card, record one decision, and confirm one Product verdict. Repeat the same signal for that roadmap revision and confirm it does not create a second card. An unverifiable post is held as `EVIDENCE_BLOCKED`.
 
 Do not put agent keys, bot tokens, raw private messages, or private document content in this evidence file.

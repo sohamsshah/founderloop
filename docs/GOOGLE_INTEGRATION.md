@@ -6,7 +6,7 @@ The user supplied [Founder Loop Product Intelligence — Demo Reference](https:/
 
 The app can read this named Doc by either:
 
-1. **OAuth Docs API:** `GOOGLE_PRODUCT_DOC_ID` plus `GOOGLE_ACCESS_TOKEN`, or `GOOGLE_APPLICATION_CREDENTIALS` pointing to an ignored service-account JSON file shared on the Doc. `src/google-auth.js` mints short-lived tokens using Google's documented service-account JWT flow. `documents.get?includeTabsContent=true` reads tabs and exact paragraph text. This path is implemented with mocked tests but **not yet live verified**.
+1. **OAuth Docs API:** `GOOGLE_PRODUCT_DOC_ID` plus `GOOGLE_ACCESS_TOKEN`, or `GOOGLE_APPLICATION_CREDENTIALS` pointing to an ignored service-account JSON file shared on the Doc. `src/google-auth.js` mints short-lived tokens using Google's documented service-account JWT flow. `documents.get?includeTabsContent=true` reads tabs and exact paragraph text.
 2. **Public text export:** `GOOGLE_DOC_PUBLIC_EXPORT=true` only for a Doc intentionally accessible via link. The user-supplied demo Doc returned HTTP 200 from its text export. On 7 November, `scripts/probe-google.js` read 16 nonempty lines and found the exact sentence about scheduled exports, correctly marking it `not_planned`. Cards label the source mode `public_export`, so it cannot be mistaken for an OAuth API read. This path depends on the Doc's current public sharing and Google's export behavior; use OAuth for private production Docs.
 
 The Doc now includes a **Product roadmap and founder decisions** section. Keep one plain text paragraph per item in this format:

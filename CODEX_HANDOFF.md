@@ -1,7 +1,8 @@
 # FOUNDER LOOP v3 — CODEX MASTER HANDOFF (EVIDENCE-FIRST, SHIPPABLE SLICES)
 
-**Submission deadline:** Saturday, 7 November 2026, **19:00 IST** (hard stop). Target submission by **18:45 IST**.  
-**Status:** Specification only. Do not write application code until Codex starts implementation.  
+**Submission deadline:** Saturday, 7 November 2026, **before 23:59 IST**.
+
+**Status:** Original implementation brief. See [release status](docs/STATUS.md) for the current evidence and submission scope.
 **Product:** Silent multi-channel signal intelligence → founder-only decision card → founder accepts/rejects/comments → internal Slack channel notified → **CLOSED**.
 
 > OVERRIDING CHANGE LOG: This v3 handoff and TASKS.md supersede older requirements. FLOW_DIAGRAMS.md is unchanged and non-normative where it conflicts with v3. No reminders, no owner assignment, no work tracing, no commitment deadline monitoring, no team decision inbox, no external customer replies, no post-decision completion tracking, no general-purpose workspace crawling, and no dashboard needed.
@@ -238,7 +239,7 @@ If setup blocks progress: provide read-only export snapshots of precisely those 
 
 - No scheduled digests, time-based jobs, reminders, SLAs, promise due dates or deadline monitoring.
 - No owner assignment, staff decision approval, employee status tracking, escalation hierarchy, progress updates, or customer follow-up.
-- No outbound Discord/Telegram/customer Slack messages, no customer replies, no recording customer-confirmed resolution.
+- Source rooms are intake only. Decisions go to the configured private Slack destinations.
 - No multiple Google Docs, broad Drive discovery or full Slack search.
 - No standalone founder dashboard or separate microservices.
 - No broad CRM integrations or scoring pipeline after founder decision.

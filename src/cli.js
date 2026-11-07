@@ -19,6 +19,8 @@ async function demo() {
       sender_name: 'Prospect', text: 'Could we schedule an enterprise evaluation and get pricing for SSO?' },
     { ...product, platform_message_id: 'fixture-commitment-001', sender_id: 'customer-789',
       sender_name: 'Customer', text: 'Our login is broken and we cannot access the product. Please help.' },
+    { ...product, platform_message_id: 'fixture-general-001', sender_id: 'visitor-456',
+      sender_name: 'Visitor', text: 'I want to set up a meeting with the founder.' },
   ];
   const config = {
     sourceMode: 'simulated', sourceRoomId: product.switch_room_id,
@@ -32,13 +34,14 @@ async function demo() {
   const transport = new FixtureTransport();
   const loop = new FounderLoop({ store, transport, config });
   console.log('=== SIMULATED FIXTURE REPLAY: no live Switch, Discord, Slack, Google Doc or Sheet ===');
+  const expectedCategories = scope === 'product' ? ['PRODUCT'] : ['PRODUCT', 'REVENUE', 'COMMITMENT', 'GENERAL'];
   for (const event of (scope === 'product' ? examples.slice(0, 1) : examples)) {
     const result = await loop.ingest(event);
-    const cards = result.cards ? result.cards.map(item => item.card) : [result.card].filter(Boolean);
+    const cards = (result.cards || [result]).filter(item => item.status === 'CARD_DELIVERED').map(item => item.card);
     for (const card of cards) {
       const founderPost = transport.posts.find(post => post.key === `card:${card.id}`);
       console.log(`\nFounder card in simulated #founder-loop:\n${founderPost?.body || '(none)'}`);
-      const verdict = card.category === 'PRODUCT' ? 'ACCEPT' : card.category === 'REVENUE' ? 'REJECT' : 'COMMENT Please review this issue';
+      const verdict = card.category === 'REVENUE' ? 'REJECT' : card.category === 'COMMITMENT' ? 'COMMENT Please review this issue' : 'ACCEPT';
       const decision = await loop.decide({ text: `FL-${String(card.id).padStart(3, '0')} ${verdict}`,
         actorId: config.founderSenderId, roomId: config.founderRoomId, sourceMode: 'simulated' });
       console.log(`Decision: ${decision.status}`);
@@ -46,8 +49,12 @@ async function demo() {
       console.log(`Internal verdict in simulated ${internal?.destination}:\n${internal?.body || '(none)'}`);
     }
   }
-  console.log(`\nCards: ${store.listCards().length}; outbound posts: ${transport.posts.length}; all closed: ${store.listCards().every(card => card.state === 'CLOSED')}`);
+  const cards = store.listCards();
+  const allClosed = cards.length === expectedCategories.length &&
+    expectedCategories.every(category => cards.some(card => card.category === category && card.state === 'CLOSED'));
+  console.log(`\nCards: ${cards.length}; outbound posts: ${transport.posts.length}; all closed: ${allClosed}`);
   store.close();
+  if (!allClosed) throw new Error(`Fixture demo did not close all expected categories (${expectedCategories.join(', ')})`);
 }
 
 async function live() {

@@ -9,10 +9,6 @@ export function escapeSlack(value) {
   return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
-export function sourceText(event, limit = 1200) {
-  return event.text.length > limit ? event.text.slice(0, limit) : event.text;
-}
-
 export function normalizeEvent(input, config = {}) {
   if (input?.event !== 'message' || input.data?.type !== 'message') return input;
 

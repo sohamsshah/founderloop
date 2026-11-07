@@ -1,12 +1,12 @@
 # Founder Loop
 
-Founder Loop silently turns ordinary customer messages in authorized Discord, Mattermost, Slack, or Telegram rooms into evidence-backed founder decisions. One Switch custom agent receives passive room events, preserves the verbatim source text, requires an exact-message link, enriches Product and Revenue signals, and posts a founder-only card. An authenticated founder replies `ACCEPT`, `REJECT`, or `COMMENT`; one verdict goes to the correct internal Slack channel and the card closes.
+Founder Loop silently turns ordinary messages in authorized Discord and Slack rooms into evidence-backed founder decisions. One Switch custom agent receives room events, preserves the original text, requires an exact-message link, and posts a private founder card. The founder can accept, reject, or comment. Founder Loop routes one verdict to the appropriate private Slack channel and closes the card.
 
-**Current state:** the Product workflow passed live Discord → Switch → private founder Slack → Product Slack → CLOSED tests using a text command, an Accept button, and a Comment modal. Completed interactive cards replace their buttons with “🎉 Decision made. Loop closed”; fresh `FL-008` proved the automatic update and one Product verdict. The Support Slack channel is now a second source room: only customer issues or explicit promises should create Commitment founder cards. Its exact Slack permalink resolver passed a live read-only probe; a fresh human issue is still needed for a live card. Telegram source support is implemented and its Docker bridge is connected, but message delivery has not been verified live. All 51 automated tests pass. The Product reference remains labeled demo content read through `public_export`. Revenue, Google Docs OAuth API access, and a live Leads Sheet remain unverified. See [status](docs/STATUS.md).
+**Hackathon release** — Product, Revenue, Commitment, and General each completed a live workflow on local standalone Switch. Product consults a demo Google Doc, Revenue reads a demo Leads Sheet, Commitment surfaces incidents, and General handles founder follow-up requests. See the [submission summary](docs/SUBMISSION.md), [demo script](docs/DEMO_SCRIPT.md), and [live evidence](docs/STATUS.md).
 
 ## Run locally
 
-Requires Node.js 22 or newer.
+Use the tested Node.js version, 22.22.0.
 
 ```sh
 npm ci
@@ -15,9 +15,11 @@ npm run demo:product
 npm run demo
 ```
 
-`demo:product` is the preserved Product-only checkpoint. `demo` walks through Product, Revenue, and Commitment. Both are **SIMULATED FIXTURE** replays: `fixture://` citations are provenance markers, not live Discord links or actual Slack posts. The all-category replay intentionally shows that one support message can create two category-specific cards and route separate founder verdicts.
+`demo:product` closes one Product card and prints two simulated posts. `demo` closes one card per category and prints eight simulated posts. Both commands run without `.env`, Switch, messaging accounts, or Google credentials. **SIMULATED FIXTURE** output uses `fixture://` citation markers and prints cards and verdicts to the terminal. The [live setup guide](docs/ENVIRONMENT_SETUP.md) covers connecting your own accounts.
 
-Detection uses a cheap local candidate filter. If both `OPENAI_API_KEY` and `OPENAI_MODEL` are configured, a structured model response may classify candidates; its evidence excerpt must be a literal substring of the original message. Model failures fall back to local rules. The fixture demo uses local rules and makes no live model claim.
+Enable `GENERAL` in `FOUNDER_LOOP_ENABLED_CATEGORIES` and in the desired `SWITCH_SOURCE_CATEGORIES` entries to surface requests for the founder to meet, reply, review, or act. General is the fallback when a specialist card does not cover the request. Its verdict stays in the private founder room.
+
+Commitment surfaces reports of outages, broken functionality, and suspected compromise, including short messages about unfamiliar components. The fixture demo uses local rules.
 
 ## Live configuration
 
@@ -25,24 +27,16 @@ This folder is its own Git repository. Keep credentials in the ignored `.env` fi
 
 1. Use the existing **standalone** Switch server and agent. Before moving the Slack and Discord connectors, stop their current Console-server consumer or use separate test app credentials; never run two consumers on the same tokens. Connect Slack and Discord to the standalone server through its Gateway/Console connection, verify both bridges, and map the dedicated Discord source and private Slack founder/Product channels into Switch rooms. Invite the agent to those three rooms.
 2. Keep the saved `SWITCH_BASE_URL`, `SWITCH_AGENT_ID`, and `SWITCH_AGENT_API_KEY` for the standalone registration. Fill `SWITCH_SOURCE_ROOM_ID` (or comma-separated `SWITCH_SOURCE_ROOM_IDS`), `SWITCH_FOUNDER_ROOM_ID`, `SWITCH_PRODUCT_ROOM_ID`, and `FOUNDER_SWITCH_SENDER_ID` from verified room/event data. `FOUNDER_SLACK_USER_ID` adds a native Slack ID check when the bridge exposes it. Sales and Support rooms are needed only if those categories are enabled.
-3. The provided demo Product Doc ID is already in local `.env`. `GOOGLE_DOC_PUBLIC_EXPORT=true` reads this publicly shared document through its text export and labels the result `public_export`. For private Docs, use a valid `GOOGLE_ACCESS_TOKEN` or a service-account JSON path in `GOOGLE_APPLICATION_CREDENTIALS`; share that **single Doc** with the service-account identity. The OAuth Docs API path has not been live tested.
-4. For Revenue, configure one `GOOGLE_REVENUE_SHEET_ID` with a `Leads` tab using the columns in [Google integration](docs/GOOGLE_INTEGRATION.md). Enable `ENABLE_SHEET_WRITE=true` only after the chosen Google identity has Editor access. Read-only matching can run without writes.
+3. Set `GOOGLE_PRODUCT_DOC_ID` to the Product reference. `GOOGLE_DOC_PUBLIC_EXPORT=true` reads the shared demo document through its text export and labels the result `public_export`. See [Google integration](docs/GOOGLE_INTEGRATION.md) for the roadmap format.
+4. For Revenue, configure one `GOOGLE_REVENUE_SHEET_ID` with a `Leads` tab using the extended columns in [Google integration](docs/GOOGLE_INTEGRATION.md). The agent reads the Sheet for account context and sends the verdict to Sales. Keep `ENABLE_SHEET_WRITE=false` for the extended schema.
 5. For interactive founder decisions, create a dedicated Slack app from [`slack-founder-app-manifest.json`](slack-founder-app-manifest.json), install it in the same workspace, generate an app-level `xapp-` token with `connections:write`, and invite its bot to the private founder channel. Set `SLACK_FOUNDER_APP_TOKEN` and `SLACK_FOUNDER_BOT_TOKEN` in ignored `.env`. The existing Agent Switch app remains the room bridge. Slack Socket Mode distributes payloads across connections for one app, so the two consumers need distinct apps. Without the new tokens, founder cards still show Block Kit sections and text commands, but no buttons.
 6. Start the agent with `npm run live` or `docker compose -f compose.agent.yml up -d --build founder-loop-agent`. This uses Switch's documented WebSocket protocol with `scope=all`, `filter=all`, cursor resume, and ping/pong. It never posts to a source room.
 
 The live agent requires trustworthy native Discord guild/channel/message IDs, a trusted exact message URL, or original Slack channel ID and message `ts` resolvable through Slack `chat.getPermalink`. The published generic Switch event omits native Discord IDs in the observed event. For the one configured Discord source room, the app reads recent messages through the Discord bot API and accepts only a unique exact text, author, channel, and timestamp match; otherwise it yields `EVIDENCE_BLOCKED` and sends no normal founder card. The founder opened a live individual-message link in the Product test. The dedicated Slack app delivered live interactive controls for `FL-005` and `FL-006`.
 
-### Telegram source room
-
-Create a Telegram **supergroup** for customer intake. Connect a Switch Telegram bot to the standalone server with Group Privacy disabled before adding the bot. Add the bot to the supergroup, invite `founder-loop` to the resulting Switch room, and add its room ID to `SWITCH_SOURCE_ROOM_IDS` with `"telegram"` in `SWITCH_SOURCE_PLATFORMS`. See the [Switch Telegram setup guide](https://docs.switchagents.ai/switch-rooms/deploy/messaging-apps/telegram).
-
-In the Docker deployment, the agent uses a dedicated **read-only PostgreSQL role** to look up Switch's durable native-message correlation. Configure the room's native `-100...` chat ID in `TELEGRAM_SOURCE_CHATS` and the `TELEGRAM_DB_*` settings in ignored `.env`. The bot token stays with Switch; Founder Loop does not poll Telegram or need a second bot. An optional separate evidence bot remains available as a fallback when direct database access is unavailable. Basic groups and broadcast channels are not supported as Founder Loop Telegram sources.
-
-The database lookup requires the exact Switch message ID and the configured chat ID. If no unique correlation exists, the source remains `EVIDENCE_BLOCKED`. Telegram setup and delivery have automated coverage but have not yet been verified against a live Telegram chat.
-
 ## Safety and persistence
 
-SQLite stores source events, their unchanged text, card evidence, category cards, immutable decisions, a delivery outbox, cursor, and audit records. A repeated source event or founder decision cannot create another card or verdict. Revenue groups messages by stable platform user ID and buying topic; display-name-only matches remain `possibly_existing`. On founder ACCEPT, a configured Sheet write re-reads by stable lead ID before append/update. If it fails, `SHEET_WRITE_FAILED` remains visible and the Sales verdict waits for a successful retry. With read-only/unavailable Sheet write access, the decision notification states the limitation.
+SQLite stores source events, their unchanged text, card evidence, category cards, immutable decisions, a delivery outbox, cursor, and audit records. A repeated source event or founder decision cannot create another card or verdict. Product groups signals by roadmap item and revision. Revenue groups matched signals by lead and decision revision. A unique internal account mention can supply verified Sheet context, while ambiguous matches omit account figures. Urgent internal renewal risks and commercial approvals can reach the founder even when the Sheet holds the account or lacks a match.
 
 SQLite commits each decision together with its pending handoff. The agent records `CLOSED` when Switch acknowledges the verdict and queues an edit of the existing founder card. If the edit fails, the agent retries the edit without sending the verdict again.
 
